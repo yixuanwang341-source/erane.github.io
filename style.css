@@ -291,3 +291,164 @@ body { height: 100%; overflow: hidden; margin: 0; padding: 20px; font-family: -a
     line-height: 1.5;
     margin-bottom: 15px;
 }
+
+.system-message-container {
+    width: 100%;
+    text-align: center;
+    padding: 5px 0;
+    margin: 4px 0;
+}
+.system-message-container span {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    display: inline-block;
+}
+.toggle-switch-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.toggle-switch-group > label {
+    margin-bottom: 0;
+    font-weight: 500;
+}
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 51px;
+    height: 31px;
+}
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.toggle-switch .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+.toggle-switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 23px;
+    width: 23px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+.toggle-switch input:checked + .slider {
+    background-color: var(--accent-color);
+}
+.toggle-switch input:checked + .slider:before {
+    transform: translateX(20px);
+}
+.form-group-description {
+    width: 100%;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.4;
+}
+/* Group Member Delete Button */
+.member-editor {
+    position: relative;
+}
+.member-editor .delete-btn {
+    display: none;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    background-color: #ff3b30;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 2px solid white;
+    z-index: 10;
+}
+
+.member-editor {
+    position: relative;
+}
+.member-editor .delete-btn {
+    display: none;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    background-color: #ff3b30;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 2px solid white;
+    z-index: 10;
+}
+
+.member-editor {
+    text-align: center;
+}
+.member-editor .member-avatar-container {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 5px auto;
+}
+.member-editor img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: #eee;
+    cursor: pointer;
+}
+.member-editor .member-name {
+    font-size: 12px;
+}
+.member-editor .delete-member-btn {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 20px;
+    height: 20px;
+    background-color: #ff3b30;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 18px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid white;
+    z-index: 10;
+    opacity: 0.9;
+    transition: opacity 0.2s, transform 0.2s;
+}
+.member-editor .delete-member-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+.member-editor .delete-btn {
+    display: none;
+}
+
