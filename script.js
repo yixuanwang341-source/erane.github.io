@@ -1,9 +1,16 @@
+let isMessageEditMode = false;
+let editingPresetId = null;
+
 function showScreen(screenId) {
+    if (isMessageEditMode && screenId !== 'chat-interface-screen') {
+        exitMessageEditMode(false);
+    }
+
     if (screenId === 'chat-list-screen') window.renderChatListProxy();
     if (screenId === 'api-settings-screen') window.renderApiSettingsProxy();
     if (screenId === 'wallpaper-screen') window.renderWallpaperScreenProxy();
     if (screenId === 'world-book-screen') window.renderWorldBookScreenProxy();
-    if (screenId === 'preset-settings-screen') window.renderPresetSettingsProxy();
+    if (screenId === 'preset-list-screen') window.renderPresetListProxy();
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const screenToShow = document.getElementById(screenId);
     if (screenToShow) screenToShow.classList.add('active');
@@ -17,10 +24,12 @@ window.renderApiSettingsProxy = () => {
 };
 window.renderWallpaperScreenProxy = () => {
 };
+window.renderPresetListProxy = () => {
+};
 window.renderWorldBookScreenProxy = () => {
 };
-window.renderPresetSettingsProxy = () => {
-};
+// window.renderPresetSettingsProxy = () => {
+// };
 window.updateListenTogetherIconProxy = () => {
 };
 
@@ -30,19 +39,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_PROMPT_IMAGE = `\n# 发送图片的能力\n- 你无法真正发送图片文件。但当用户要求你发送照片，或者你想通过图片来表达时，你可以发送一张“文字描述的图片”。\n- 若要发送图片，请在你的回复JSON数组中，单独发送一个特殊的对象，格式为：\`{"type": "ai_image", "description": "这里是对图片的详细文字描述..."}\`。这个描述应该生动、具体，让用户能通过文字想象出画面，，以第三人称视角描述。例如：\`{"type": "ai_image", "description": "照片里一只橘猫正懒洋洋地趴在窗台上晒太阳，阳光把它金色的毛照得发亮，背景是蔚蓝的天空和几朵白云。"}\`\n- 你可以在对话中先做铺垫，然后发送这张特殊的“图片”。`;
     const DEFAULT_PROMPT_VOICE = `\n# 发送语音的能力\n- 你也无法发送真实的语音。但你可以发送“模拟语音消息”。\n- 若要发送语音，请在你的回复JSON数组中，单独发送一个特殊的对象，格式为：\`{"type": "voice_message", "content": "这里是语音的文字内容..."}\`。例如：\`{"type": "voice_message", "content": "我刚才突然想到一件事！等一下和你说。"}\``;
     const DEFAULT_PROMPT_TRANSFER = `\n# 转账能力\n- 你可以给用户转账来表达强烈的情感或在特殊时机（如用户过生日、想要某样东西时）给予惊喜。这会让对话更真实、温馨。\n- 若要转账，请在你的回复JSON数组中，单独发送一个特殊的对象，格式为：\`{"type": "transfer", "amount": 520, "note": "一周年快乐~"}\`。金额和备注都可以自定义。你可以先说一两句话，再进行转账，模拟真人的操作。大方点，不要太抠搜，你要哄用户开心哦。反正这是虚拟货币，你有的是。大方点！不要说什么“你省着点花”，太逊了！\n- 当用户给你转账时，历史记录中会显示 \`[你收到了来自用户的转账: 金额，备注]\`，请务必对此作出回应，表达你的感谢或惊讶。`;
-    const DEFAULT_PROMPT_SINGLE = `你现在扮演一个名为"{chat.name}"的角色。\n\n# 当前情景信息\n- **当前时间是：{currentTime}**。\n{myAddress}{worldBookContent}{musicContext}\n# 你的角色设定：\n{chat.settings.aiPersona}\n\n# 对话者的角色设定：\n{chat.settings.myPersona}\n\n# 你的任务：\n1. 严格保持你的人设进行对话。\n2. 你的回复必须是一个JSON数组格式的字符串，每个元素是一条消息。\n3. 你必须一次性生成3到8条消息，模拟真人在短时间内连续发送多条信息的情景，不可少于3条。\n4.你不允许提出“面基”“见面”“线下”等词汇，你只需要模拟线上聊天模式即可。\n5.如果用户超过一个小时没有发送消息，则默认结束当前话题，因为用户可能是去办什么事。你可以询问，例如“怎么这么久没回我？刚才有事吗？”\n6. 不要说任何与角色无关的话，不要解释自己是AI。\n7.当用户说今天你们做了什么事时，顺着ta的话说即可，就当做你们真的做了这件事。\n8. 当用户发送图片时，请自然地对图片内容做出反应。当历史记录中出现 "[用户发来一条语音消息，内容是：'xxx']" 或 "[你收到了一张用户描述的照片，照片内容是：'xxx']" 时，你要理解其内容并作出相应回复，表现出你是“听”到或“看”到了。\n\n# 如何理解与使用表情包 (重要！):\n- **理解用户表情**: 当用户发送形如 "[用户发送了一个表情，意思是：'xxx']" 的消息时，你要理解其含义并作出回应。\n- **使用你的表情**: 当你想表达强烈或特殊的情绪时，你可以直接发送一个表情包，表情包的格式为一条独立的消息。\n请在合适的时机使用表情包来让对话更生动，按照角色性格来控制发送表情包的频率，有的角色可能很少发表情包，有的角色可能一次性发很多。\n表情包的格式读取人设或世界书中的格式，若未提及则不发，不允许凭空捏造表情包。\n{aiImageInstructions}\n{aiVoiceInstructions}\n{transferInstructions}\n# JSON输出格式示例:\n["很高兴认识你呀，在干嘛呢？", {"type": "voice_message", "content": "真的好喜欢你，亲亲~。"}, {"type": "ai_image", "description": "照片里是楼下的一只狸花猫，胖乎乎的。"}, {"type": "transfer", "amount": 520, "note": "一周年快乐"}]\n\n现在，请根据以上的规则和下面的对话历史，继续进行对话。`;
-    const DEFAULT_PROMPT_GROUP = `你是一个群聊的组织者和AI驱动器。你的任务是扮演以下所有角色，在群聊中进行互动。\n{myAddress}{worldBookContent}{musicContext}\n# 群聊规则\n1.  **角色扮演**: 你必须同时扮演以下所有角色，并严格遵守他们的人设。每个角色的发言都必须符合其身份和性格。\n2.  **当前时间**: {currentTime}。\n3.  **用户角色**: 用户的名字是“我”，他/她的人设是：“{chat.settings.myPersona}”。你在群聊中对用户的称呼是“{myNickname}”，在需要时请使用“@{myNickname}”来提及用户。\n4.  **输出格式**: 你的回复**必须**是一个JSON数组。**绝对不要**在JSON前后添加任何额外字符。每个元素可以是：\n    - 普通消息: \`{"name": "角色名", "message": "文本内容"}\`\n    - 图片消息: \`{"name": "角色名", "type": "ai_image", "description": "图片描述"}\`\n    - 语音消息: \`{"name": "角色名", "type": "voice_message", "content": "语音文字"}\`\n5.  **对话节奏**: 模拟真实群聊，让成员之间互相交谈，或者一起回应用户的发言。对话应该流畅、自然、连贯。\n6.  **数量限制**: 每次生成的总消息数**不得超过30条**。\n7.  **禁止出戏**: 绝不能透露你是AI，或提及任何关于“扮演”、“模型”、“生成”等词语。\n{groupAiImageInstructions}\n{groupAiVoiceInstructions}\n\n# 群成员列表及人设\n{membersList}\n\n现在，请根据以上规则和下面的对话历史，继续这场群聊。`;
+    const DEFAULT_PROMPT_SINGLE = `你现在扮演一个名为"{chat.name}"的角色。\n\n# 当前情景信息\n- **当前时间是：{currentTime}**。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 你的角色设定：\n{chat.settings.aiPersona}\n\n# 对话者的角色设定：\n{chat.settings.myPersona}\n\n# 你的任务：\n1. 严格保持你的人设进行对话。\n2. 你的回复必须是一个JSON数组格式的字符串，每个元素是一条消息。\n3. 你必须一次性生成3到8条消息，模拟真人在短时间内连续发送多条信息的情景，不可少于3条。\n4.你不允许提出“面基”“见面”“线下”等词汇，你只需要模拟线上聊天模式即可。\n5.如果用户超过一个小时没有发送消息，则默认结束当前话题，因为用户可能是去办什么事。你可以询问，例如“怎么这么久没回我？刚才有事吗？”\n6. 不要说任何与角色无关的话，不要解释自己是AI。\n7.当用户说今天你们做了什么事时，顺着ta的话说即可，就当做你们真的做了这件事。\n8. 当用户发送图片时，请自然地对图片内容做出反应。当历史记录中出现 "[用户发来一条语音消息，内容是：'xxx']" 或 "[你收到了一张用户描述的照片，照片内容是：'xxx']" 时，你要理解其内容并作出相应回复，表现出你是“听”到或“看”到了。\n\n# 如何理解与使用表情包 (重要！):\n- **理解用户表情**: 当用户发送形如 "[用户发送了一个表情，意思是：'xxx']" 的消息时，你要理解其含义并作出回应。\n- **使用你的表情**: 当你想表达强烈或特殊的情绪时，你可以直接发送一个表情包，表情包的格式为一条独立的消息。\n请在合适的时机使用表情包来让对话更生动，按照角色性格来控制发送表情包的频率，有的角色可能很少发表情包，有的角色可能一次性发很多。\n表情包的格式读取人设或世界书中的格式，若未提及则不发，不允许凭空捏造表情包。\n{aiImageInstructions}\n{aiVoiceInstructions}\n{transferInstructions}\n# JSON输出格式示例:\n["很高兴认识你呀，在干嘛呢？", {"type": "voice_message", "content": "真的好喜欢你，亲亲~。"}, {"type": "ai_image", "description": "照片里是楼下的一只狸花猫，胖乎乎的。"}, {"type": "transfer", "amount": 520, "note": "一周年快乐"}]\n\n现在，请根据以上的规则和下面的对话历史，继续进行对话。`;
+    const DEFAULT_PROMPT_GROUP = `你是一个群聊的组织者和AI驱动器。你的任务是扮演以下所有角色，在群聊中进行互动。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 群聊规则\n1.  **角色扮演**: 你必须同时扮演以下所有角色，并严格遵守他们的人设。每个角色的发言都必须符合其身份和性格。\n2.  **当前时间**: {currentTime}。\n3.  **用户角色**: 用户的名字是“我”，他/她的人设是：“{chat.settings.myPersona}”。你在群聊中对用户的称呼是“{myNickname}”，在需要时请使用“@{myNickname}”来提及用户。\n4.  **输出格式**: 你的回复**必须**是一个JSON数组。**绝对不要**在JSON前后添加任何额外字符。每个元素可以是：\n    - 普通消息: \`{"name": "角色名", "message": "文本内容"}\`\n    - 图片消息: \`{"name": "角色名", "type": "ai_image", "description": "图片描述"}\`\n    - 语音消息: \`{"name": "角色名", "type": "voice_message", "content": "语音文字"}\`\n5.  **对话节奏**: 模拟真实群聊，让成员之间互相交谈，或者一起回应用户的发言。对话应该流畅、自然、连贯。\n6.  **数量限制**: 每次生成的总消息数**不得超过30条**。\n7.  **禁止出戏**: 绝不能透露你是AI，或提及任何关于“扮演”、“模型”、“生成”等词语。\n{groupAiImageInstructions}\n{groupAiVoiceInstructions}\n\n# 群成员列表及人设\n{membersList}\n\n现在，请根据以上规则和下面的对话历史，继续这场群聊。`;
 
 
     const db = new Dexie('GeminiChatDB');
-    db.version(9).stores({
+    db.version(10).stores({ // 版本号从 9 增加到 10
         chats: '&id, isGroup',
         apiConfig: '&id',
         globalSettings: '&id',
         userStickers: '&id, url, name',
         worldBooks: '&id, name',
         musicLibrary: '&id',
-        personaPresets: '&id'
+        personaPresets: '&id',
+        presets: '&id, name' // 新增 presets 表
+    }).upgrade(async tx => {
+        // 数据迁移逻辑：将旧的全局预设转换为新的预设条目
+        const globalSettings = await tx.table('globalSettings').get('main');
+        if (globalSettings && globalSettings.promptSingle) {
+            const newPreset = {
+                id: 'preset_default_migrated',
+                name: '默认预设 (已迁移)',
+                remark: '从旧版本自动迁移的预设',
+                promptImage: globalSettings.promptImage || DEFAULT_PROMPT_IMAGE,
+                promptVoice: globalSettings.promptVoice || DEFAULT_PROMPT_VOICE,
+                promptTransfer: globalSettings.promptTransfer || DEFAULT_PROMPT_TRANSFER,
+                promptSingle: globalSettings.promptSingle || DEFAULT_PROMPT_SINGLE,
+                promptGroup: globalSettings.promptGroup || DEFAULT_PROMPT_GROUP,
+            };
+            await tx.table('presets').add(newPreset);
+
+            // 更新 globalSettings
+            delete globalSettings.promptImage;
+            delete globalSettings.promptVoice;
+            delete globalSettings.promptTransfer;
+            delete globalSettings.promptSingle;
+            delete globalSettings.promptGroup;
+            globalSettings.activePresetId = newPreset.id;
+            await tx.table('globalSettings').put(globalSettings);
+        }
     });
 
     let state = {
@@ -52,7 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
         apiConfig: {},
         userStickers: [],
         worldBooks: [],
-        personaPresets: []
+        personaPresets: [],
+        presets: [] // 新增 presets 数组
     };
     let myAddress = '位置未知';
     let musicState = {
@@ -72,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let editingMemberId = null;
     let editingWorldBookId = null;
     let editingPersonaPresetId = null;
+    let editingPresetId = null;
     const defaultAvatar = 'https://i.postimg.cc/PxZrFFFL/o-o-1.jpg';
     const defaultMyGroupAvatar = 'https://i.postimg.cc/cLPP10Vm/4.jpg';
     const defaultGroupMemberAvatar = 'https://i.postimg.cc/VkQfgzGJ/1.jpg';
@@ -87,8 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let batteryAlertTimeout;
 
     async function loadAllDataFromDB() {
-        const [chatsArr, apiConfig, globalSettings, userStickers, worldBooks, musicLib, personaPresets] = await Promise.all([
-            db.chats.toArray(), db.apiConfig.get('main'), db.globalSettings.get('main'), db.userStickers.toArray(), db.worldBooks.toArray(), db.musicLibrary.get('main'), db.personaPresets.toArray()
+        const [chatsArr, apiConfig, globalSettings, userStickers, worldBooks, musicLib, personaPresets,presets] = await Promise.all([
+            db.chats.toArray(), db.apiConfig.get('main'), db.globalSettings.get('main'), db.userStickers.toArray(), db.worldBooks.toArray(), db.musicLibrary.get('main'), db.personaPresets.toArray(),db.presets.toArray()
         ]);
         state.chats = chatsArr.reduce((acc, chat) => {
             if (!chat.musicData) chat.musicData = {totalTime: 0};
@@ -103,22 +140,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultGlobalSettings = {
             id: 'main',
             wallpaper: 'linear-gradient(135deg, #89f7fe, #66a6ff)',
-            promptImage: DEFAULT_PROMPT_IMAGE,
-            promptVoice: DEFAULT_PROMPT_VOICE,
-            promptTransfer: DEFAULT_PROMPT_TRANSFER,
-            promptSingle: DEFAULT_PROMPT_SINGLE,
-            promptGroup: DEFAULT_PROMPT_GROUP,
             enableGeolocation: false,
-            remoteThemeUrl: '', // Add this line
-            builtInTheme: '' // 内置主题
+            remoteThemeUrl: '' ,// Add this line
+            activePresetId: null
         };
         state.globalSettings = {...defaultGlobalSettings, ...(globalSettings || {})};
         state.userStickers = userStickers || [];
         state.worldBooks = worldBooks || [];
         musicState.playlist = musicLib?.playlist || [];
         state.personaPresets = personaPresets || [];
-        if(state.globalSettings.builtInTheme){
-            document.querySelector('html').classList.add(state.globalSettings.builtInTheme);
+        state.presets = presets || [];
+
+        if (state.presets.length === 0) {
+            // 如果数据库中一个预设都没有，创建一个默认的
+            const defaultPreset = {
+                id: 'preset_' + Date.now(),
+                name: '默认预设',
+                remark: '系统内置的默认AI行为预设。',
+                promptImage: DEFAULT_PROMPT_IMAGE,
+                promptVoice: DEFAULT_PROMPT_VOICE,
+                promptTransfer: DEFAULT_PROMPT_TRANSFER,
+                promptSingle: DEFAULT_PROMPT_SINGLE,
+                promptGroup: DEFAULT_PROMPT_GROUP
+            };
+            state.presets.push(defaultPreset);
+            await db.presets.add(defaultPreset);
+            state.globalSettings.activePresetId = defaultPreset.id;
+            await db.globalSettings.put(state.globalSettings);
+        } else if (!state.globalSettings.activePresetId || !state.presets.find(p => p.id === state.globalSettings.activePresetId)) {
+            // 如果有预设但没有激活的，或者激活的ID无效，则激活第一个
+            state.globalSettings.activePresetId = state.presets[0].id;
+            await db.globalSettings.put(state.globalSettings);
         }
     }
 
@@ -217,7 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.className = `message-bubble ${isUser ? 'user' : 'ai'}`;
         bubble.dataset.timestamp = msg.timestamp;
 
-        bubble.addEventListener('dblclick', () => handlePat(msg));
+        bubble.addEventListener('dblclick', () => {
+            // 编辑模式下禁止拍一拍
+            if (isMessageEditMode) return;
+            handlePat(msg);
+        });
 
         let avatarSrc;
         if (chat.isGroup) {
@@ -394,6 +450,66 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const themeListModal = document.getElementById('theme-list-modal');
+    const themeListContainer = document.getElementById('theme-list-container');
+    const themeListModalTitle = document.getElementById('theme-list-modal-title');
+    function closeThemeListModal() {
+        themeListModal.classList.remove('visible');
+        themeListContainer.innerHTML = ''; // 关闭时清空内容
+    }
+    async function openThemeListModal(jsonUrl, title) {
+        themeListModalTitle.textContent = title;
+        themeListModal.classList.add('visible');
+        themeListContainer.innerHTML = '<p>正在加载主题列表...</p>';
+        try {
+            const response = await fetch(jsonUrl);
+            if (!response.ok) {
+                throw new Error(`网络请求失败: ${response.status}`);
+            }
+            const themes = await response.json();
+            if (!Array.isArray(themes) || themes.length === 0) {
+                themeListContainer.innerHTML = '<p>未找到有效的主题或列表为空。</p>';
+                return;
+            }
+            themeListContainer.innerHTML = ''; // 清空加载提示
+            themes.forEach((theme, index) => {
+                const themeId = `theme-option-${index}`;
+                const themeItem = document.createElement('div');
+                themeItem.className = 'theme-item';
+                themeItem.innerHTML = `
+                    <div class="theme-item-header">
+                        <input type="radio" id="${themeId}" name="theme-selection" value="${theme.css_url}">
+                        <label for="${themeId}">${theme.description || '无标题'}</label>
+                    </div>
+                    <div class="theme-item-details">
+                        <span>作者: ${theme.author || '未知'}</span>
+                        <span>版本: ${theme.version || '未知'}</span>
+                    </div>
+                    <p class="theme-item-remark">${theme.remark || '无备注'}</p>
+                `;
+                themeListContainer.appendChild(themeItem);
+            });
+        } catch (error) {
+            console.error("加载主题列表失败:", error);
+            themeListContainer.innerHTML = `<p style="color: red;">加载失败: ${error.message}</p>`;
+        }
+    }
+
+    async function confirmThemeSelection() {
+        const selectedRadio = document.querySelector('input[name="theme-selection"]:checked');
+        if (!selectedRadio) {
+            alert('请先选择一个主题！');
+            return;
+        }
+        const url = selectedRadio.value;
+        // 应用并保存主题
+        switchStylesheet(url);
+        state.globalSettings.remoteThemeUrl = url;
+        await db.globalSettings.put(state.globalSettings);
+        showCustomAlert("主题已更新", "新主题已应用并保存。");
+        closeThemeListModal();
+    }
+
     function formatTimestamp(timestamp) {
         if (!timestamp) return '';
         const date = new Date(timestamp);
@@ -459,19 +575,134 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.getElementById('remote-theme-url').value = state.globalSettings.remoteThemeUrl || ''; // Add this line
     }
+    function renderPresetList() {
+        const listEl = document.getElementById('preset-list');
+        listEl.innerHTML = '';
+        if (state.presets.length === 0) {
+            listEl.innerHTML = '<p style="text-align:center; color: #8a8a8a; margin-top: 50px;">点击右上角 "+" 创建你的第一个预设</p>';
+            return;
+        }
+        state.presets.forEach(preset => {
+            const isActive = preset.id === state.globalSettings.activePresetId;
+            const item = document.createElement('div');
+            item.className = 'preset-list-item';
+            if (isActive) {
+                item.classList.add('active');
+            }
+            item.innerHTML = `
+                <div class="preset-info" data-preset-id="${preset.id}">
+                    <div class="preset-name">
+                        ${isActive ? '<span class="active-indicator">★</span>' : ''}
+                        ${preset.name}
+                    </div>
+                    <div class="preset-remark">${preset.remark || '无备注'}</div>
+                </div>
+                <div class="preset-actions">
+                    <button class="action-btn-small edit-preset-btn" data-preset-id="${preset.id}">编辑</button>
+                    <button class="action-btn-small set-active-preset-btn" data-preset-id="${preset.id}" ${isActive ? 'disabled' : ''}>设为当前</button>
+                </div>
+            `;
+            listEl.appendChild(item);
+        });
+    }
+    function openPresetEditor(presetId) {
+        editingPresetId = presetId;
+        const editorTitle = document.getElementById('preset-editor-title');
+        const deleteBtn = document.getElementById('delete-preset-btn');
 
-    window.renderApiSettingsProxy = renderApiSettings;
+        if (presetId) { // 编辑现有预设
+            const preset = state.presets.find(p => p.id === presetId);
+            if (!preset) return;
+            editorTitle.textContent = `编辑预设: ${preset.name}`;
+            document.getElementById('preset-name-input').value = preset.name;
+            document.getElementById('preset-remark-input').value = preset.remark;
+            document.getElementById('prompt-image-input').value = preset.promptImage;
+            document.getElementById('prompt-voice-input').value = preset.promptVoice;
+            document.getElementById('prompt-transfer-input').value = preset.promptTransfer;
+            document.getElementById('prompt-single-input').value = preset.promptSingle;
+            document.getElementById('prompt-group-input').value = preset.promptGroup;
+            deleteBtn.style.display = 'block';
+        } else { // 新增预设
+            editorTitle.textContent = '新增预设';
+            document.getElementById('preset-name-input').value = '';
+            document.getElementById('preset-remark-input').value = '';
+            // 使用默认值填充
+            document.getElementById('prompt-image-input').value = DEFAULT_PROMPT_IMAGE;
+            document.getElementById('prompt-voice-input').value = DEFAULT_PROMPT_VOICE;
+            document.getElementById('prompt-transfer-input').value = DEFAULT_PROMPT_TRANSFER;
+            document.getElementById('prompt-single-input').value = DEFAULT_PROMPT_SINGLE;
+            document.getElementById('prompt-group-input').value = DEFAULT_PROMPT_GROUP;
+            deleteBtn.style.display = 'none';
+        }
+        showScreen('preset-editor-screen');
+    }
+    async function savePreset() {
+        const name = document.getElementById('preset-name-input').value.trim();
+        if (!name) {
+            alert('预设名称不能为空！');
+            return;
+        }
+        const presetData = {
+            name: name,
+            remark: document.getElementById('preset-remark-input').value.trim(),
+            promptImage: document.getElementById('prompt-image-input').value,
+            promptVoice: document.getElementById('prompt-voice-input').value,
+            promptTransfer: document.getElementById('prompt-transfer-input').value,
+            promptSingle: document.getElementById('prompt-single-input').value,
+            promptGroup: document.getElementById('prompt-group-input').value
+        };
+        if (editingPresetId) { // 更新
+            const index = state.presets.findIndex(p => p.id === editingPresetId);
+            state.presets[index] = { ...state.presets[index], ...presetData };
+            await db.presets.put(state.presets[index]);
+        } else { // 新增
+            const newPreset = { id: 'preset_' + Date.now(), ...presetData };
+            state.presets.push(newPreset);
+            await db.presets.add(newPreset);
+        }
+        editingPresetId = null;
+        renderPresetList();
+        showScreen('preset-list-screen');
+    }
+    async function deletePreset() {
+        if (!editingPresetId) return;
+        if (state.presets.length <= 1) {
+            alert('不能删除唯一的预设！');
+            return;
+        }
+        const preset = state.presets.find(p => p.id === editingPresetId);
+        const confirmed = await showCustomConfirm('删除预设', `确定要删除预设 "${preset.name}" 吗？此操作不可撤销。`, { confirmButtonClass: 'btn-danger' });
+        if (confirmed) {
+            await db.presets.delete(editingPresetId);
+            state.presets = state.presets.filter(p => p.id !== editingPresetId);
+            // 如果删除的是当前激活的预设，则自动激活列表中的第一个
+            if (state.globalSettings.activePresetId === editingPresetId) {
+                await setActivePreset(state.presets[0].id);
+            }
 
-    function renderPresetSettings() {
-        if (!state.globalSettings) return;
-        document.getElementById('prompt-image-input').value = state.globalSettings.promptImage || DEFAULT_PROMPT_IMAGE;
-        document.getElementById('prompt-voice-input').value = state.globalSettings.promptVoice || DEFAULT_PROMPT_VOICE;
-        document.getElementById('prompt-transfer-input').value = state.globalSettings.promptTransfer || DEFAULT_PROMPT_TRANSFER;
-        document.getElementById('prompt-single-input').value = state.globalSettings.promptSingle || DEFAULT_PROMPT_SINGLE;
-        document.getElementById('prompt-group-input').value = state.globalSettings.promptGroup || DEFAULT_PROMPT_GROUP;
+            editingPresetId = null;
+            renderPresetList();
+            showScreen('preset-list-screen');
+        }
+    }
+    async function setActivePreset(presetId) {
+        state.globalSettings.activePresetId = presetId;
+        await db.globalSettings.put(state.globalSettings);
+        renderPresetList();
     }
 
-    window.renderPresetSettingsProxy = renderPresetSettings;
+    window.renderApiSettingsProxy = renderApiSettings;
+    window.renderPresetListProxy = renderPresetList;
+    // function renderPresetSettings() {
+    //     if (!state.globalSettings) return;
+    //     document.getElementById('prompt-image-input').value = state.globalSettings.promptImage || DEFAULT_PROMPT_IMAGE;
+    //     document.getElementById('prompt-voice-input').value = state.globalSettings.promptVoice || DEFAULT_PROMPT_VOICE;
+    //     document.getElementById('prompt-transfer-input').value = state.globalSettings.promptTransfer || DEFAULT_PROMPT_TRANSFER;
+    //     document.getElementById('prompt-single-input').value = state.globalSettings.promptSingle || DEFAULT_PROMPT_SINGLE;
+    //     document.getElementById('prompt-group-input').value = state.globalSettings.promptGroup || DEFAULT_PROMPT_GROUP;
+    // }
+    //
+    // window.renderPresetSettingsProxy = renderPresetSettings;
 
     function renderChatList() {
         const chatListEl = document.getElementById('chat-list');
@@ -710,9 +941,11 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.className = `message-bubble ${isUser ? 'user' : 'ai'}`;
         bubble.dataset.timestamp = msg.timestamp;
 
-        // The pat function is now bound to the double-click event.
-        bubble.addEventListener('dblclick', () => handlePat(msg));
-
+        bubble.addEventListener('dblclick', () => {
+            // 编辑模式下禁止拍一拍
+            if (isMessageEditMode) return;
+            handlePat(msg);
+        });
         let avatarSrc;
         if (chat.isGroup) {
             if (isUser) {
@@ -792,13 +1025,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatId = state.activeChatId;
         const chat = state.chats[chatId];
         document.getElementById('typing-indicator').style.display = 'block';
+
         const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
-        if (!proxyUrl || !apiKey || !model) {
+
+        if (!rawProxyUrl || !apiKey || !model) {
             alert('请先在API设置中配置反代地址、密钥并选择模型。');
             document.getElementById('typing-indicator').style.display = 'none';
             return;
         }
 
+        // 处理/v1/v1问题
         let proxyUrl = rawProxyUrl ? rawProxyUrl.trim() : '';
         if (proxyUrl.endsWith('/')) {
             proxyUrl = proxyUrl.slice(0, -1);
@@ -806,7 +1042,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (proxyUrl.endsWith('/v1')) {
             proxyUrl = proxyUrl.slice(0, -3);
         }
-
 
         const now = new Date();
         const currentTime = now.toLocaleTimeString('zh-CN', {hour: 'numeric', minute: 'numeric', hour12: true});
@@ -832,15 +1067,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let systemPrompt, messagesPayload;
         const maxMemory = parseInt(chat.settings.maxMemory) || 10;
         const historySlice = chat.history.slice(-maxMemory);
-        const aiImageInstructions = state.globalSettings.promptImage || DEFAULT_PROMPT_IMAGE;
-        const aiVoiceInstructions = state.globalSettings.promptVoice || DEFAULT_PROMPT_VOICE;
-        const transferInstructions = state.globalSettings.promptTransfer || DEFAULT_PROMPT_TRANSFER;
+        const activePreset = state.presets.find(p => p.id === state.globalSettings.activePresetId) || state.presets[0];
+        const aiImageInstructions = activePreset?.promptImage || DEFAULT_PROMPT_IMAGE;
+        const aiVoiceInstructions = activePreset?.promptVoice || DEFAULT_PROMPT_VOICE;
+        const transferInstructions = activePreset?.promptTransfer || DEFAULT_PROMPT_TRANSFER;
         if (chat.isGroup) {
             const membersList = chat.members.map(m => `- **${m.name}**: ${m.persona}`).join('\n');
             const myNickname = chat.settings.myNickname || '我';
             const groupAiImageInstructions = `\n# 发送图片的能力\n- 群成员无法真正发送图片文件。但当用户要求某位成员发送照片，或者某个成员想通过图片来表达时，该成员可以发送一张“文字描述的图片”。\n- 若要发送图片，请在你的回复JSON数组中，为该角色单独发送一个特殊的对象，格式为：\`{"name": "角色名", "type": "ai_image", "description": "这里是对图片的详细文字描述..."}\`。描述应该符合该角色的性格和当时的语境。`;
             const groupAiVoiceInstructions = `\n# 发送语音的能力\n- 群成员同样可以发送“模拟语音消息”。\n- 若要发送语音，请为该角色单独发送一个特殊的对象，格式为：\`{"name": "角色名", "type": "voice_message", "content": "这里是语音的文字内容..."}\`。当历史记录中出现 "[角色名 发送了一条语音，内容是：'xxx']" 时，代表该角色用语音说了'xxx'。其他角色应该对此内容做出回应。`;
-            let baseGroupPrompt = state.globalSettings.promptGroup || DEFAULT_PROMPT_GROUP;
+            let baseGroupPrompt = activePreset?.promptGroup || DEFAULT_PROMPT_GROUP;
             systemPrompt = baseGroupPrompt
                 .replace('{myAddress}', myAddressInfo)
                 .replace('{worldBookContent}', worldBookContent)
@@ -852,7 +1088,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 .replace('{groupAiVoiceInstructions}', groupAiVoiceInstructions)
                 .replace('{membersList}', membersList);
             messagesPayload = historySlice.map(msg => {
-                // Handle "pat" messages by formatting them as a system event.
                 if (msg.type === 'pat') {
                     return {role: 'user', content: `[拍一拍 ${msg.content}]`};
                 }
@@ -868,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return {role: 'user', content: content};
             });
         } else {
-            let baseSinglePrompt = state.globalSettings.promptSingle || DEFAULT_PROMPT_SINGLE;
+            let baseSinglePrompt = activePreset?.promptSingle || DEFAULT_PROMPT_SINGLE;
             systemPrompt = baseSinglePrompt
                 .replace('{myAddress}', myAddressInfo)
                 .replace(/{chat.name}/g, chat.name)
@@ -881,7 +1116,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 .replace('{aiVoiceInstructions}', aiVoiceInstructions)
                 .replace('{transferInstructions}', transferInstructions);
             messagesPayload = historySlice.map(msg => {
-                // Handle "pat" messages for single chat as well.
                 if (msg.type === 'pat') {
                     return {role: 'user', content: `[拍一拍 ${msg.content}]`};
                 }
@@ -1014,6 +1248,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+
     async function sendSticker(sticker) {
         if (!state.activeChatId) return;
         const chat = state.chats[state.activeChatId];
@@ -1057,10 +1292,80 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function enterSelectionMode(initialMsgTimestamp) {
+        if (isMessageEditMode) {
+            exitMessageEditMode(false);
+        }
         if (isSelectionMode) return;
         isSelectionMode = true;
         document.getElementById('chat-interface-screen').classList.add('selection-mode');
         toggleMessageSelection(initialMsgTimestamp);
+    }
+
+    async function exitMessageEditMode(shouldSave = false) {
+        if (!isMessageEditMode) return;
+
+        const editBtnImg = document.querySelector('#edit-messages-btn img');
+        editBtnImg.src = 'https://i.postimg.cc/V60TWbGr/image.png'; // Edit icon
+        editBtnImg.alt = '编辑';
+        document.querySelector('#edit-messages-btn').title = '编辑消息';
+
+        const chat = state.chats[state.activeChatId];
+        let changesMade = false;
+
+        document.querySelectorAll('.message-bubble .content.editable').forEach(contentEl => {
+            if (shouldSave) {
+                const timestamp = parseInt(contentEl.closest('.message-bubble').dataset.timestamp, 10);
+                const newContent = contentEl.innerHTML;
+
+                const message = chat.history.find(msg => msg.timestamp === timestamp);
+                if (message && message.content !== newContent) {
+                    message.content = newContent;
+                    changesMade = true;
+                }
+            }
+            contentEl.contentEditable = false;
+            contentEl.classList.remove('editable');
+        });
+
+        if (shouldSave && changesMade) {
+            await db.chats.put(chat);
+            showCustomAlert('保存成功', '消息已更新。');
+        }
+
+        isMessageEditMode = false;
+    }
+
+    function enterMessageEditMode() {
+        if (isMessageEditMode) return;
+
+        const editBtnImg = document.querySelector('#edit-messages-btn img');
+        editBtnImg.src = 'https://i.postimg.cc/GtrQTBZ1/image.png';
+        editBtnImg.alt = '保存';
+        document.querySelector('#edit-messages-btn').title = '保存编辑';
+
+        document.querySelectorAll('.message-bubble:not(.system-message-container) .content').forEach(contentEl => {
+            const bubble = contentEl.closest('.message-bubble');
+            if (bubble && !bubble.classList.contains('is-sticker') &&
+                !bubble.classList.contains('is-voice-message') &&
+                !bubble.classList.contains('is-transfer') &&
+                !bubble.classList.contains('is-ai-image') &&
+                !bubble.classList.contains('has-image')) {
+                contentEl.contentEditable = true;
+                contentEl.classList.add('editable');
+            }
+        });
+        isMessageEditMode = true;
+        showCustomAlert('进入编辑模式', '您现在可以点击消息气泡来编辑其内容。完成后，请再次点击“保存”按钮。');
+    }
+
+    async function toggleMessageEditMode() {
+        if (!state.activeChatId) return;
+
+        if (isMessageEditMode) {
+            await exitMessageEditMode(true); // Exit and save
+        } else {
+            enterMessageEditMode(); // Enter
+        }
     }
 
     function exitSelectionMode() {
@@ -1660,10 +1965,12 @@ document.addEventListener('DOMContentLoaded', () => {
         applyGlobalWallpaper();
         initBatteryManager();
         document.getElementById('back-to-list-btn').addEventListener('click', () => {
+            exitMessageEditMode(false);
             exitSelectionMode();
             state.activeChatId = null;
             showScreen('chat-list-screen');
         });
+        document.getElementById('edit-messages-btn').addEventListener('click', toggleMessageEditMode);
         document.getElementById('add-chat-btn').addEventListener('click', async () => {
             const name = await showCustomPrompt('创建新聊天', '请输入Ta的名字');
             if (name && name.trim()) {
@@ -1779,7 +2086,16 @@ document.addEventListener('DOMContentLoaded', () => {
             chatInput.style.height = 'auto';
             chatInput.focus();
         });
-        document.getElementById('wait-reply-btn').addEventListener('click', triggerAiResponse);
+        document.getElementById('wait-reply-btn').addEventListener('click', () => {
+            triggerAiResponse();
+            // 点击后自动滚动到底部
+            setTimeout(() => {
+                const messagesContainer = document.getElementById('chat-messages');
+                if (messagesContainer) {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }, 50);
+        });
         chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -2199,53 +2515,77 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderChatList();
             }
         });
-        document.getElementById('save-preset-settings-btn').addEventListener('click', async () => {
-            state.globalSettings.promptImage = document.getElementById('prompt-image-input').value;
-            state.globalSettings.promptVoice = document.getElementById('prompt-voice-input').value;
-            state.globalSettings.promptTransfer = document.getElementById('prompt-transfer-input').value;
-            state.globalSettings.promptSingle = document.getElementById('prompt-single-input').value;
-            state.globalSettings.promptGroup = document.getElementById('prompt-group-input').value;
-            await db.globalSettings.put(state.globalSettings);
-            alert('预设已保存！');
+
+        document.getElementById('export-data-btn').addEventListener('click', exportData);
+        document.getElementById('import-data-trigger-btn').addEventListener('click', () => document.getElementById('import-data-input').click());
+        document.getElementById('import-data-input').addEventListener('change', importData);
+        //预设管理
+        document.getElementById('add-preset-btn').addEventListener('click', () => openPresetEditor(null));
+        document.getElementById('save-preset-btn').addEventListener('click', savePreset);
+        document.getElementById('delete-preset-btn').addEventListener('click', deletePreset);
+
+        document.getElementById('preset-list').addEventListener('click', (e) => {
+            const editBtn = e.target.closest('.edit-preset-btn');
+            const setActiveBtn = e.target.closest('.set-active-preset-btn');
+            if (editBtn) {
+                openPresetEditor(editBtn.dataset.presetId);
+            } else if (setActiveBtn && !setActiveBtn.disabled) {
+                setActivePreset(setActiveBtn.dataset.presetId);
+            }
         });
-        document.getElementById('restore-preset-settings-btn').addEventListener('click', async () => {
-            const confirmed = await showCustomConfirm('恢复默认设置', '确定要将所有预设恢复为默认值吗？未保存的更改将丢失。');
-            if (confirmed) {
+
+        document.getElementById('restore-preset-defaults-btn').addEventListener('click', async () => {
+            const confirmed = await showCustomConfirm('恢复默认值', '确定要将当前编辑的所有提示词恢复为系统默认值吗？');
+            if(confirmed){
                 document.getElementById('prompt-image-input').value = DEFAULT_PROMPT_IMAGE;
                 document.getElementById('prompt-voice-input').value = DEFAULT_PROMPT_VOICE;
                 document.getElementById('prompt-transfer-input').value = DEFAULT_PROMPT_TRANSFER;
                 document.getElementById('prompt-single-input').value = DEFAULT_PROMPT_SINGLE;
                 document.getElementById('prompt-group-input').value = DEFAULT_PROMPT_GROUP;
-                alert('已恢复为默认值，请点击“保存设置”以生效。');
             }
         });
-        document.getElementById('export-data-btn').addEventListener('click', exportData);
-        document.getElementById('import-data-trigger-btn').addEventListener('click', () => document.getElementById('import-data-input').click());
-        document.getElementById('import-data-input').addEventListener('change', importData);
         //远程css
+        // --- 主题与外观 ---
+        // 按钮：选择内置主题
+        document.getElementById('open-builtin-themes-btn').addEventListener('click', () => {
+            const builtinThemeListUrl = './themeList.json';
+            openThemeListModal(builtinThemeListUrl, '选择内置主题');
+        });
+
+        // 按钮：加载远程主题库
+        document.getElementById('load-remote-library-btn').addEventListener('click', () => {
+            const libraryUrl = document.getElementById('remote-theme-library-url').value.trim();
+            if (!libraryUrl) {
+                alert('请输入远程主题库的URL！');
+                return;
+            }
+            openThemeListModal(libraryUrl, '选择远程主题');
+        });
+        // 按钮：应用远程CSS URL
         document.getElementById('apply-remote-theme-btn').addEventListener('click', async () => {
             const url = document.getElementById('remote-theme-url').value.trim();
+            if (!url) {
+                alert('请输入远程主题的CSS URL！');
+                return;
+            }
             switchStylesheet(url);
             state.globalSettings.remoteThemeUrl = url;
             await db.globalSettings.put(state.globalSettings);
             showCustomAlert("主题已更新", "远程主题已应用并保存。");
         });
+        // 按钮：重置为默认主题
         document.getElementById('reset-remote-theme-btn').addEventListener('click', async () => {
             document.getElementById('remote-theme-url').value = '';
+            document.getElementById('remote-theme-library-url').value = '';
             switchStylesheet(''); // Revert to default
             state.globalSettings.remoteThemeUrl = '';
             await db.globalSettings.put(state.globalSettings);
             showCustomAlert("主题已重置", "已恢复为默认主题。");
         });
-
+        // 主题选择弹窗内的按钮
+        document.getElementById('cancel-theme-selection-btn').addEventListener('click', closeThemeListModal);
+        document.getElementById('confirm-theme-selection-btn').addEventListener('click', confirmThemeSelection);
         showScreen('home-screen');
-
-        document.getElementById('theme-select').addEventListener('change', async (e) => {
-            document.querySelector('html').classList.remove('theme1');
-            document.querySelector('html').classList.add(e.target.value);
-            state.globalSettings.builtInTheme = e.target.value;
-            await db.globalSettings.put(state.globalSettings);
-        })
     }
 
     init();
