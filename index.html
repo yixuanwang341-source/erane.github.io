@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="theme1">
+<html lang="zh-CN" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>EPhone</title>
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-    <link rel="stylesheet" href="./style.css">
-<!--    <link rel="stylesheet" href="./theme1.css">-->
+    <link rel="stylesheet"  href="./style.css">
+    <link rel="stylesheet"  href="./theme1.css">
 </head>
 <body>
 <div id="phone-frame">
@@ -108,6 +108,34 @@
                     </div>
                     <p class="form-group-description">开启后，AI将能获取您的大致地理位置 (如城市)，以提供更具情景感的对话。位置信息仅在本地处理。</p>
                 </div>
+                <hr class="settings-divider">
+                <div>
+                    <!-- 标签选择器 -->
+                    <input class="tab-input" type="radio" name="theme" id="built-in" checked>
+                    <label class="tab-label" for="built-in">内置主题</label>
+
+                    <input class="tab-input" type="radio" name="theme" id="css-url">
+                    <label class="tab-label" for="css-url">远程CSS</label>
+
+                    <div class="custom-theme">
+                            <select id="theme-select" >
+                                <option value="" selected>默认</option>
+                                <option value="theme1" >浅色(去边框)</option>
+                            </select>
+                    </div>
+                    <div class="custom-css">
+                        <div class="form-group">
+                            <label for="remote-theme-url">远程主题 CSS URL (可选)</label>
+                            <input type="text" id="remote-theme-url" placeholder="https://example.com/theme.css">
+                            <p class="form-group-description">输入一个CSS文件的URL来完全替换应用的默认样式。留空则使用默认主题。</p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="form-button form-button-secondary" id="apply-remote-theme-btn" style="flex: 1;">应用主题</button>
+                            <button class="form-button form-button-secondary" id="reset-remote-theme-btn" style="flex: 1;">重置主题</button>
+                        </div>
+                    </div>
+                </div>
+                <hr class="settings-divider">
                 <div class="data-management-section">
                     <h3 class="data-management-title">数据管理</h3>
                     <p class="data-management-desc">
@@ -246,7 +274,7 @@
                 </div>
                 <div id="sticker-grid"></div>
             </div>
-            <input type="file" id="sticker-upload-input" accept="image/*" multiple style="display: none;">
+            <input type="file" id="sticker-upload-input" accept="image/*" style="display: none;">
             <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
 
             <div id="music-player-overlay">

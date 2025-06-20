@@ -1,55 +1,77 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+ :root {
+    --border2-color: #fff !important;
+    --title-color: #fff !important;
+    --primary-color: #409EFF !important;
 }
 
-body {
+/*首页*/
+.theme1 * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* 针对 WebKit 浏览器 (Chrome, Safari, Edge) */
+    tap-highlight-color: transparent; /* 未来标准属性 */
+    outline: none; /* 移除焦点轮廓 */
+}
+
+.theme1 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     /*background: linear-gradient(180deg, #7dcded, #4682b4);*/
-    background: linear-gradient(135deg, #87ceeb, #b6e4f7);
+    background: linear-gradient(135deg, #87ceeb, #e0f6ff);
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
     padding: 0;
+
 }
-.theme1 #phone-frame{
+
+.theme1 #phone-frame {
     font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     background: none;
     box-shadow: none;
     border-radius: initial;
+    padding: 0;
+
 }
-.theme1 #phone-screen{
+
+.theme1 #phone-screen {
     background: none;
     border: none;
     border-radius: initial;
+    overflow: initial;
+    max-height: 100%;
 }
-.theme1 #status-bar{
+
+.theme1 #status-bar {
     top: -10px;
 }
-.theme1 .notch{
+
+.theme1 .notch {
     display: none;
 }
-.theme1 #home-screen{
+
+.theme1 #home-screen {
     background: none !important;
     border-radius: initial;
 }
-.theme1 #main-time{
+
+.theme1 #main-time {
     font-size: 60px;
     font-weight: 600;
     color: #fff;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
-.theme1 .app-row{
+
+.theme1 .app-row {
     gap: initial;
 }
-.theme1 #app-grid{
+
+.theme1 #app-grid {
     gap: initial;
     margin: 0;
 }
-.theme1 .app-icon{
+
+.theme1 .app-icon {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -63,36 +85,259 @@ body {
     text-align: center;
     transition: transform 0.3s ease;
 }
-.theme1 .app-icon .icon-bg{
+
+.theme1 .app-icon .icon-bg {
     background: transparent;
     box-shadow: none;
     border-radius: initial;
     position: relative;
 }
-.theme1 .app-icon .icon-bg:after{
+
+.theme1 .app-icon .icon-bg:after {
     content: '🐻';
     position: absolute;
     font-size: 40px;
 }
-.theme1 .app-icon .icon-bg img{
+
+.theme1 .app-icon .icon-bg img {
     display: none;
 }
-.theme1 .app-row:nth-of-type(1){
+
+.theme1 .app-row:nth-of-type(1) {
     margin-bottom: 15px;
 }
-.theme1 .app-icon:not(:last-of-type){
+
+.theme1 .app-icon:not(:last-of-type) {
     margin-right: 15px;
 }
 
-.theme1 .app-row:nth-of-type(1) .app-icon:nth-of-type(2) .icon-bg:after{
+.theme1 .app-row:nth-of-type(1) .app-icon:nth-of-type(2) .icon-bg:after {
     content: '📩';
 }
-.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(1) .icon-bg:after{
+
+.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(1) .icon-bg:after {
     content: '🤖';
 }
-.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(2) .icon-bg:after{
+
+.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(2) .icon-bg:after {
     content: '🔧';
 }
-.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(3) .icon-bg:after{
+
+.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(3) .icon-bg:after {
     content: '🎨';
+}
+
+
+/*世界书*/
+.theme1 #world-book-screen.active {
+    /*background: rgba(255, 255, 255, 0.2);*/
+    /*backdrop-filter: blur(10px);*/
+    /*-webkit-backdrop-filter: blur(10px);*/
+    /*border-radius: 20px;*/
+    /*padding: 20px;*/
+    /*box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)*/
+}
+
+.theme1 #world-book-screen {
+    top: 30px;
+    padding:0 15px 30px 15px;
+}
+
+/*此处全局影响*/
+.theme1 .screen.active .header {
+    background: none;
+    border-radius: initial;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    padding: 0 ;
+    color: var(--title-color);
+}
+ .theme1 .screen.active .header .back-btn ,  .theme1 .screen.active .header .action-btn ,  .theme1 .screen.active .header  .save-btn,  .theme1 .screen.active .header span{
+     color: var(--title-color) !important;
+ }
+.theme1 .screen.active #world-book-list {
+    background: none;
+}
+
+.theme1 .screen.active #world-book-list .item-content {
+    color: #737070;
+}
+
+.theme1 #world-book-editor-screen.active {
+    top: 35px;
+}
+ .theme1 #world-book-editor-screen .header {
+     padding: 0 15px;
+ }
+.theme1 #world-book-editor-screen.active label {
+    color: #737070;
+}
+
+.theme1 #world-book-editor-screen.active input, .theme1 #world-book-editor-screen.active textarea {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    color: #333;
+}
+
+.theme1 #world-book-editor-title {
+    color: var(--title-color);
+}
+
+.theme1 #custom-modal-overlay {
+    background: transparent;
+}
+
+.theme1 #custom-modal-overlay #custom-modal {
+    transform: none;
+    /*background: rgba(255, 255, 255, 0.85);*/
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 400px;
+}
+
+.theme1 #custom-modal-cancel, .theme1 #custom-modal-confirm {
+    color: #000000;
+}
+
+/*预设*/
+.theme1 #preset-settings-screen {
+    top: 30px;
+    padding:0 15px 30px 15px;
+}
+
+.theme1 #preset-settings-screen .form-group label {
+    color: #737070;
+}
+
+.theme1 #preset-settings-screen .form-group input, .theme1 #preset-settings-screen .form-group textarea {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    color: #333;
+}
+
+.theme1 #preset-settings-screen .form-button {
+    background-color: var(--primary-color);
+}
+
+/*API设置*/
+.theme1 #api-settings-screen {
+    top: 30px;
+    padding:0 15px 30px 15px;
+}
+
+.theme1 #api-settings-screen .form-container > p:first-child {
+    color: #e6a23c !important;
+    background-color: #fdf6ec !important;
+    margin-bottom: 10px;
+}
+
+.theme1 #api-settings-screen .form-container > p:first-child code {
+    color: #f56c6c !important;
+}
+
+.theme1 #api-settings-screen .form-group label {
+    color: #737070;
+}
+ .theme1 #api-settings-screen #apply-remote-theme-btn{
+     background-color: var(--primary-color);
+     color: #fff;
+ }
+ .theme1 #api-settings-screen #apply-remote-theme-btn {
+     background-color: var(--primary-color);
+     color: #fff;
+ }
+.theme1 #api-settings-screen .form-group input, .theme1 #api-settings-screen .form-group textarea, .theme1 #api-settings-screen .form-group select {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    color: #333;
+}
+
+.theme1 #api-settings-screen #fetch-models-btn {
+    background-color: var(--primary-color);
+}
+
+.theme1 #api-settings-screen #save-api-settings-btn {
+    background-color: #67C23A;
+}
+
+.theme1 #api-settings-screen #export-data-btn {
+    background-color: #F56C6C;
+    color: #fff;
+}
+
+.theme1 #api-settings-screen #import-data-trigger-btn {
+    background-color: #909399;
+    color: #fff;
+}
+
+/*壁纸*/
+.theme1 #wallpaper-screen {
+    top: 30px;
+    padding:0 15px 30px 15px;
+}
+
+.theme1 #wallpaper-screen .form-container > button:first-of-type {
+    background-color: var(--primary-color);
+}
+
+.theme1 #wallpaper-screen .form-container > button:nth-of-type(2) {
+    background-color: #67C23A;
+}
+
+/*聊天*/
+.theme1 #chat-list-screen {
+    top: 30px;
+    padding:0 15px 30px 15px;
+}
+
+.theme1 #chat-list {
+    background: transparent;
+}
+
+.theme1 .group-tag {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.theme1 #chat-interface-screen .header {
+    padding: 45px 20px 15px 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border2-color);
+    color: #000000;
+}
+
+.theme1 #chat-interface-screen .header .back-btn , .theme1 #chat-interface-screen .header #chat-header-title{
+    color: #000000 !important;
+}
+
+.theme1 #chat-messages {
+    margin-top: -70px;
+}
+
+.theme1 #send-btn {
+    background-color: var(--primary-color);
+}
+
+.theme1 #chat-settings-modal #cancel-chat-settings-btn {
+    background-color: #F56C6C;
+    color: #fff;
+    border: none;
+}
+
+.theme1 #chat-settings-modal #save-chat-settings-btn {
+    background-color: var(--primary-color);
+}
+
+.theme1 #chat-settings-modal #add-group-member-btn {
+    font-weight: normal;
+    font-size: 14px;
 }

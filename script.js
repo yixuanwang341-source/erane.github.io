@@ -108,7 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
             promptTransfer: DEFAULT_PROMPT_TRANSFER,
             promptSingle: DEFAULT_PROMPT_SINGLE,
             promptGroup: DEFAULT_PROMPT_GROUP,
-            enableGeolocation: false // 新增默认值
+            enableGeolocation: false,
+            remoteThemeUrl: '' // Add this line
         };
         state.globalSettings = {...defaultGlobalSettings, ...(globalSettings || {})};
         state.userStickers = userStickers || [];
@@ -452,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (geoToggle) {
             geoToggle.checked = state.globalSettings.enableGeolocation || false;
         }
+        document.getElementById('remote-theme-url').value = state.globalSettings.remoteThemeUrl || ''; // Add this line
     }
 
     window.renderApiSettingsProxy = renderApiSettings;
@@ -575,6 +577,17 @@ document.addEventListener('DOMContentLoaded', () => {
         messagesContainer.scrollTop += (newScrollHeight - oldScrollHeight);
         if (totalMessages > currentRenderedCount) {
             prependLoadMoreButton(messagesContainer);
+        }
+    }
+
+    function switchStylesheet(url) {
+        const stylesheet = document.getElementById('main-stylesheet');
+        if (stylesheet) {
+            if (url && url.trim() !== '') {
+                stylesheet.href = url + '?v=' + Date.now();
+            } else {
+                stylesheet.href = './style.css';
+            }
         }
     }
 
@@ -775,12 +788,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatId = state.activeChatId;
         const chat = state.chats[chatId];
         document.getElementById('typing-indicator').style.display = 'block';
-        const {proxyUrl, apiKey, model} = state.apiConfig;
+        const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
         if (!proxyUrl || !apiKey || !model) {
             alert('请先在API设置中配置反代地址、密钥并选择模型。');
             document.getElementById('typing-indicator').style.display = 'none';
             return;
         }
+
+        let proxyUrl = rawProxyUrl ? rawProxyUrl.trim() : '';
+        if (proxyUrl.endsWith('/')) {
+            proxyUrl = proxyUrl.slice(0, -1);
+        }
+        if (proxyUrl.endsWith('/v1')) {
+            proxyUrl = proxyUrl.slice(0, -3);
+        }
+
+
         const now = new Date();
         const currentTime = now.toLocaleTimeString('zh-CN', {hour: 'numeric', minute: 'numeric', hour12: true});
         let myAddressInfo = '';
@@ -1624,6 +1647,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function init() {
         await loadAllDataFromDB();
+        if (state.globalSettings.remoteThemeUrl) {
+            switchStylesheet(state.globalSettings.remoteThemeUrl);
+        }
         await updateGeolocation(); // 在初始化时获取一次位置
         updateClock();
         setInterval(updateClock, 1000 * 30);
@@ -1793,11 +1819,23 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('API设置已保存!');
         });
         document.getElementById('fetch-models-btn').addEventListener('click', async () => {
-            const url = document.getElementById('proxy-url').value.trim();
+            let url = document.getElementById('proxy-url').value.trim();
             const key = document.getElementById('api-key').value.trim();
             if (!url || !key) return alert('请先填写反代地址和密钥');
+
+            // 去除/
+            if (url.endsWith('/')) {
+                url = url.slice(0, -1);
+            }
+            // 去除/v1避免 /v1/v1错误
+            if (url.endsWith('/v1')) {
+                url = url.slice(0, -3);
+            }
+
             try {
-                const response = await fetch(`${url}/v1/models`, {headers: {'Authorization': `Bearer ${key}`}});
+                const response = await fetch(`${url}/v1/models`, {
+                    headers: { 'Authorization': `Bearer ${key}` }
+                });
                 if (!response.ok) throw new Error('无法获取模型列表');
                 const data = await response.json();
                 const modelSelect = document.getElementById('model-select');
@@ -1814,6 +1852,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(`拉取模型失败: ${error.message}`);
             }
         });
+
         document.getElementById('geolocation-toggle').addEventListener('change', async (e) => {
             state.globalSettings.enableGeolocation = e.target.checked;
             await db.globalSettings.put(state.globalSettings);
@@ -2179,7 +2218,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('export-data-btn').addEventListener('click', exportData);
         document.getElementById('import-data-trigger-btn').addEventListener('click', () => document.getElementById('import-data-input').click());
         document.getElementById('import-data-input').addEventListener('change', importData);
+        //远程css
+        document.getElementById('apply-remote-theme-btn').addEventListener('click', async () => {
+            const url = document.getElementById('remote-theme-url').value.trim();
+            switchStylesheet(url);
+            state.globalSettings.remoteThemeUrl = url;
+            await db.globalSettings.put(state.globalSettings);
+            showCustomAlert("主题已更新", "远程主题已应用并保存。");
+        });
+        document.getElementById('reset-remote-theme-btn').addEventListener('click', async () => {
+            document.getElementById('remote-theme-url').value = '';
+            switchStylesheet(''); // Revert to default
+            state.globalSettings.remoteThemeUrl = '';
+            await db.globalSettings.put(state.globalSettings);
+            showCustomAlert("主题已重置", "已恢复为默认主题。");
+        });
+
         showScreen('home-screen');
+
+        document.getElementById('theme-select').addEventListener('change', (e) => {
+            document.querySelector('html').classList.remove('theme1');
+            document.querySelector('html').classList.add(e.target.value);
+        })
     }
 
     init();
