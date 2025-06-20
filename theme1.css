@@ -1,0 +1,98 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    /*background: linear-gradient(180deg, #7dcded, #4682b4);*/
+    background: linear-gradient(135deg, #87ceeb, #b6e4f7);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: 0;
+}
+.theme1 #phone-frame{
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: none;
+    box-shadow: none;
+    border-radius: initial;
+}
+.theme1 #phone-screen{
+    background: none;
+    border: none;
+    border-radius: initial;
+}
+.theme1 #status-bar{
+    top: -10px;
+}
+.theme1 .notch{
+    display: none;
+}
+.theme1 #home-screen{
+    background: none !important;
+    border-radius: initial;
+}
+.theme1 #main-time{
+    font-size: 60px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.theme1 .app-row{
+    gap: initial;
+}
+.theme1 #app-grid{
+    gap: initial;
+    margin: 0;
+}
+.theme1 .app-icon{
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: world;
+    justify-content: center;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+.theme1 .app-icon .icon-bg{
+    background: transparent;
+    box-shadow: none;
+    border-radius: initial;
+    position: relative;
+}
+.theme1 .app-icon .icon-bg:after{
+    content: '🐻';
+    position: absolute;
+    font-size: 40px;
+}
+.theme1 .app-icon .icon-bg img{
+    display: none;
+}
+.theme1 .app-row:nth-of-type(1){
+    margin-bottom: 15px;
+}
+.theme1 .app-icon:not(:last-of-type){
+    margin-right: 15px;
+}
+
+.theme1 .app-row:nth-of-type(1) .app-icon:nth-of-type(2) .icon-bg:after{
+    content: '📩';
+}
+.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(1) .icon-bg:after{
+    content: '🤖';
+}
+.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(2) .icon-bg:after{
+    content: '🔧';
+}
+.theme1 .app-row:nth-of-type(2) .app-icon:nth-of-type(3) .icon-bg:after{
+    content: '🎨';
+}
