@@ -109,13 +109,17 @@ document.addEventListener('DOMContentLoaded', () => {
             promptSingle: DEFAULT_PROMPT_SINGLE,
             promptGroup: DEFAULT_PROMPT_GROUP,
             enableGeolocation: false,
-            remoteThemeUrl: '' // Add this line
+            remoteThemeUrl: '', // Add this line
+            builtInTheme: '' // 内置主题
         };
         state.globalSettings = {...defaultGlobalSettings, ...(globalSettings || {})};
         state.userStickers = userStickers || [];
         state.worldBooks = worldBooks || [];
         musicState.playlist = musicLib?.playlist || [];
         state.personaPresets = personaPresets || [];
+        if(state.globalSettings.builtInTheme){
+            document.querySelector('html').classList.add(state.globalSettings.builtInTheme);
+        }
     }
 
     async function updateGeolocation() {
@@ -2236,9 +2240,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showScreen('home-screen');
 
-        document.getElementById('theme-select').addEventListener('change', (e) => {
+        document.getElementById('theme-select').addEventListener('change', async (e) => {
             document.querySelector('html').classList.remove('theme1');
             document.querySelector('html').classList.add(e.target.value);
+            state.globalSettings.builtInTheme = e.target.value;
+            await db.globalSettings.put(state.globalSettings);
         })
     }
 
