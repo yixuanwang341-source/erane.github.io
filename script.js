@@ -11,6 +11,7 @@ function showScreen(screenId) {
     if (screenId === 'wallpaper-screen') window.renderWallpaperScreenProxy();
     if (screenId === 'world-book-screen') window.renderWorldBookScreenProxy();
     if (screenId === 'preset-list-screen') window.renderPresetListProxy();
+    if (screenId === 'char-list-screen') window.renderCharListProxy();
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const screenToShow = document.getElementById(screenId);
     if (screenToShow) screenToShow.classList.add('active');
@@ -31,6 +32,8 @@ window.renderWorldBookScreenProxy = () => {
 // window.renderPresetSettingsProxy = () => {
 // };
 window.updateListenTogetherIconProxy = () => {
+};
+window.renderCharListProxy = () => {
 };
 
 
@@ -142,7 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
             wallpaper: 'linear-gradient(135deg, #89f7fe, #66a6ff)',
             enableGeolocation: false,
             remoteThemeUrl: '' ,// Add this line
-            activePresetId: null
+            activePresetId: null,
+            chars:[]
         };
         state.globalSettings = {...defaultGlobalSettings, ...(globalSettings || {})};
         state.userStickers = userStickers || [];
@@ -2289,6 +2293,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 bgPreview.style.display = 'none';
                 removeBgBtn.style.display = 'none';
             }
+            const charSelect =document.querySelector('.select-char');
+            charSelect.classList.remove('visible')
+            importCharOption(isGroup)
             if (isGroup) {
                 document.getElementById('my-group-nickname-input').value = chat.settings.myNickname || '';
                 document.getElementById('group-avatar-preview').src = chat.settings.groupAvatar || defaultGroupAvatar;
@@ -2297,6 +2304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('ai-persona').value = chat.settings.aiPersona;
                 document.getElementById('ai-pat-suffix-input').value = chat.settings.aiPatSuffix || '';
                 document.getElementById('ai-avatar-preview').src = chat.settings.aiAvatar || defaultAvatar;
+                charSelect.classList.add('visible')
             }
             document.getElementById('max-memory').value = chat.settings.maxMemory;
             const currentTheme = chat.settings.theme || 'default';
@@ -2586,6 +2594,179 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cancel-theme-selection-btn').addEventListener('click', closeThemeListModal);
         document.getElementById('confirm-theme-selection-btn').addEventListener('click', confirmThemeSelection);
         showScreen('home-screen');
+
+
+        // 人设弹窗
+        let charEditId = undefined;
+        document.getElementById('add-char-btn').addEventListener('click', ()=>openCharEditor(undefined));
+       async function openCharEditor(id) {
+            if(id){
+                charEditId = id;
+                const char = state.globalSettings.chars.find(c=>c.id===id);
+                document.getElementById('char-name-input').value = char.name;
+                document.getElementById('char-persona-input').value = char.persona;
+                document.getElementById('char-pat-suffix-input').value = char.pat;
+                document.getElementById('char-avatar-preview').src = char.avatar;
+            }
+            document.getElementById('char-settings-modal').classList.add('visible');
+        }
+        document.getElementById('cancel-char-settings-btn').addEventListener('click', ()=>{
+            document.getElementById('char-settings-modal').classList.remove('visible');
+            clearCharData()
+        })
+        document.getElementById('save-char-settings-btn').addEventListener('click', async ()=>{
+
+            const name = document.getElementById('char-name-input').value;
+            const persona = document.getElementById('char-persona-input').value;
+            const pat = document.getElementById('char-pat-suffix-input').value;
+            const avatar = document.getElementById('char-avatar-preview').src;
+            if(!name){
+                alert('名字不能为空')
+                return
+            }
+            let chars = state.globalSettings.chars;
+            if(charEditId){
+                const index = state.globalSettings.chars.findIndex(c=>c.id===charEditId);
+                state.globalSettings.chars[index] = {
+                    id: charEditId,
+                    name:name,
+                    persona:persona,
+                    pat:pat,
+                    avatar:avatar,
+                }
+            }else {
+                let data = {
+                    name: name,
+                    persona:persona,
+                    pat:pat,
+                    avatar:avatar,
+                    id:'char_'+Date.now()
+                }
+                if(Array.isArray(chars)){
+                    chars.push(data);
+                }else {
+                    chars = [
+                        data
+                    ];
+                }
+                state.globalSettings.chars = chars;
+            }
+            await db.globalSettings.put(state.globalSettings);
+            document.getElementById('char-settings-modal').classList.remove('visible');
+            clearCharData()
+            updateCharList()
+        })
+        setupFileUpload('char-avatar-input', (base64) => document.getElementById('char-avatar-preview').src = base64);
+        function updateCharList() {
+            let chars = state.globalSettings.chars;
+            if (Array.isArray(chars) && chars.length > 0) {
+                const charList = document.getElementById('char-list');
+                if (charList) {
+                    charList.innerHTML = ''; // 清空现有内容
+                    chars.forEach((item) => {
+                        const char = document.createElement('div');
+                        char.className = 'chat-item';
+                        char.innerHTML = `
+                            <div class="pic">
+                                <img src="${item.avatar ? item.avatar : 'https://i.postimg.cc/VkQfgzGJ/1.jpg'}" alt="Avatar">
+                            </div>
+                            <div class="info">${item.name}</div>
+                            <div class="action">
+                                <span class="action-btn" title="删除" data-char-id="${item.id}"></span>
+                            </div>
+                        `;
+                        const deleteBtn = char.querySelector('.action-btn');
+                        deleteBtn.addEventListener('click', () => deleteChar(item.id));
+                        
+                        // 为.pic和.info添加点击事件
+                        const picElement = char.querySelector('.pic');
+                        const infoElement = char.querySelector('.info');
+                        
+                        if (picElement) {
+                            picElement.addEventListener('click', () => openCharEditor(item.id));
+                        }
+                        
+                        if (infoElement) {
+                            infoElement.addEventListener('click', () => openCharEditor(item.id));
+                        }
+                        
+                        charList.appendChild(char);
+                    });
+                }
+            }
+        }
+        async function deleteChar(id) {
+            if (!confirm('确定要删除吗？')) {
+                return;
+            }
+            let chars = state.globalSettings.chars;
+            if (Array.isArray(chars)) {
+                state.globalSettings.chars = chars.filter(c => c.id !== id);
+                updateCharList();
+                // 更新数据库
+               await db.globalSettings.put(state.globalSettings);
+            }
+        }
+        function clearCharData() {
+            document.getElementById('char-name-input').value = '';
+            document.getElementById('char-persona-input').value = '';
+            document.getElementById('char-pat-suffix-input').value = '';
+            document.getElementById('char-avatar-preview').src = defaultAvatar;
+            charEditId = undefined
+        }
+        function importCharOption(isGroup) {
+            let chars = state.globalSettings.chars;
+            let defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.text = '不导入';
+            if(isGroup){
+                const select =  document.getElementById('chat-select-group-input')
+                if (Array.isArray(chars)) {
+                    select.innerHTML = '';
+                    select.appendChild(defaultOption);
+                    chars.forEach((item)=>{
+                        const char = document.createElement('option');
+                        char.value = item.id;
+                        char.text = item.name;
+                        select.appendChild(char);
+                    })
+                }
+            }else {
+                const select =  document.getElementById('chat-select-input')
+                if (Array.isArray(chars)) {
+                    select.innerHTML = '';
+                    select.appendChild(defaultOption);
+                    chars.forEach((item)=>{
+                        const char = document.createElement('option');
+                        char.value = item.id;
+                        char.text = item.name;
+                        select.appendChild(char);
+                    })
+                }
+            }
+
+        }
+        document.getElementById('chat-select-input').addEventListener('change', (e) => {
+            const char = state.globalSettings.chars.find(c=>c.id===e.target.value);
+            if(char){
+                // document.getElementById('char-name-input').value = char.name;
+                document.getElementById('ai-persona').value = char.persona;
+                document.getElementById('ai-pat-suffix-input').value = char.pat;
+                document.getElementById('ai-avatar-preview').src = char.avatar;
+            }
+
+        })
+        document.getElementById('chat-select-group-input').addEventListener('change', (e) => {
+            const char = state.globalSettings.chars.find(c=>c.id===e.target.value);
+            if(char){
+                document.getElementById('member-name-input').value = char.name;
+                document.getElementById('member-persona-input').value = char.persona;
+                document.getElementById('member-pat-suffix-input').value = char.pat;
+                document.getElementById('member-avatar-preview').src = char.avatar;
+            }
+
+        })
+        window.renderCharListProxy = updateCharList;
     }
 
     init();

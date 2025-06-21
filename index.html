@@ -5,20 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>EPhone</title>
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-<!--    <link rel="stylesheet"  href="./baseStyle.css">-->
-    <link rel="stylesheet"  href="https://fastly.jsdelivr.net/gh/mxw13579/phone@release-v1.0.0.7/myPhone/baseStyle.css">
-    <link rel="stylesheet" id="main-stylesheet" href="https://fastly.jsdelivr.net/gh/mxw13579/phone@release-v1.0.0.7/myPhone/beautifyStyle.css">
-<!--    <link rel="stylesheet" href="./theme1.css">-->
-<!--    <link rel="stylesheet" id="main-stylesheet" href="./beautifyStyle.css">-->
-    <script>
-        var _hmt = _hmt || [];
-        (function() {
-            var hm = document.createElement("script");
-            hm.src = "https://hm.baidu.com/hm.js?95a870260e9246d70af33963cc4ded39";
-            var s = document.getElementsByTagName("script")[0];
-            s.parentNode.insertBefore(hm, s);
-        })();
-    </script>
+        <link rel="stylesheet"  href="./baseStyle.css">
+<!--        <link rel="stylesheet"  href="./beautifyStyle.css">-->
+<!--    <link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/mxw13579/phone@release-v1.0.0.7/myPhone/baseStyle.css">-->
+    <link rel="stylesheet" id="main-stylesheet"
+          href="https://fastly.jsdelivr.net/gh/mxw13579/phone@release-v1.0.0.7/myPhone/beautifyStyle.css">
+    <!--    <link rel="stylesheet" href="./theme1.css">-->
+    <!--    <link rel="stylesheet" id="main-stylesheet" href="./beautifyStyle.css">-->
+<!--    <script>-->
+<!--        var _hmt = _hmt || [];-->
+<!--        (function () {-->
+<!--            var hm = document.createElement("script");-->
+<!--            hm.src = "https://hm.baidu.com/hm.js?95a870260e9246d70af33963cc4ded39";-->
+<!--            var s = document.getElementsByTagName("script")[0];-->
+<!--            s.parentNode.insertBefore(hm, s);-->
+<!--        })();-->
+<!--    </script>-->
 </head>
 <body>
 <div id="phone-frame">
@@ -53,6 +55,9 @@
                     <div class="app-icon" onclick="showScreen('preset-list-screen')">
                         <div class="icon-bg"><img src="https://i.postimg.cc/MKfTfsmq/1.png" alt="预设设置"></div>
                         <span class="label">预设设置</span></div>
+                    <div class="app-icon" onclick="showScreen('char-list-screen')">
+                        <div class="icon-bg"><img src="https://i.postimg.cc/yNL7tkqC/image.png"  alt="预设设置"></div>
+                        <span class="label">char人设</span></div>
                 </div>
                 <div class="app-row">
                     <div class="app-icon" onclick="showScreen('chat-list-screen')">
@@ -118,23 +123,32 @@
                         <input type="checkbox" id="geolocation-toggle">
                         <label for="geolocation-toggle" class="slider"></label>
                     </div>
-                    <p class="form-group-description">开启后，AI将能获取您的大致地理位置 (如城市)，以提供更具情景感的对话。位置信息仅在本地处理。</p>
+                    <p class="form-group-description">开启后，AI将能获取您的大致地理位置
+                        (如城市)，以提供更具情景感的对话。位置信息仅在本地处理。</p>
                 </div>
                 <hr class="settings-divider">
                 <h3 class="data-management-title">主题与外观</h3>
-                <p class="data-management-desc">通过内置主题库、远程主题库或直接的URL来自定义应用外观。所有主题设置都会被保存。</p>
+                <p class="data-management-desc">
+                    通过内置主题库、远程主题库或直接的URL来自定义应用外观。所有主题设置都会被保存。</p>
 
                 <!-- 内置主题和重置按钮 -->
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <button class="form-button form-button-secondary" id="open-builtin-themes-btn" style="flex: 1;">选择内置主题</button>
-                    <button class="form-button form-button-secondary" id="reset-remote-theme-btn" style="flex: 1;">重置为默认</button>
+                    <button class="form-button form-button-secondary" id="open-builtin-themes-btn" style="flex: 1;">
+                        选择内置主题
+                    </button>
+                    <button class="form-button form-button-secondary" id="reset-remote-theme-btn" style="flex: 1;">
+                        重置为默认
+                    </button>
                 </div>
                 <!-- 远程主题库 -->
                 <div class="form-group">
                     <label for="remote-theme-library-url">远程主题库 URL (JSON)</label>
                     <div style="display: flex; gap: 10px;">
-                        <input type="text" id="remote-theme-library-url" placeholder="https://.../themeList.json" style="flex-grow: 1; margin-bottom: 0;">
-                        <button class="form-button form-button-secondary" id="load-remote-library-btn" style="flex-shrink: 0; width: auto; padding: 0 15px; margin-top: 0;">加载</button>
+                        <input type="text" id="remote-theme-library-url" placeholder="https://.../themeList.json"
+                               style="flex-grow: 1; margin-bottom: 0;">
+                        <button class="form-button form-button-secondary" id="load-remote-library-btn"
+                                style="flex-shrink: 0; width: auto; padding: 0 15px; margin-top: 0;">加载
+                        </button>
                     </div>
                     <p class="form-group-description">模式一：输入一个远程主题库(JSON文件)的URL，加载后选择主题。</p>
                 </div>
@@ -143,8 +157,11 @@
                 <div class="form-group">
                     <label for="remote-theme-url">远程主题 CSS URL</label>
                     <div style="display: flex; gap: 10px;">
-                        <input type="text" id="remote-theme-url" placeholder="https://.../theme.css" style="flex-grow: 1; margin-bottom: 0;">
-                        <button class="form-button form-button-secondary" id="apply-remote-theme-btn" style="flex-shrink: 0; width: auto; padding: 0 15px; margin-top: 0;">应用</button>
+                        <input type="text" id="remote-theme-url" placeholder="https://.../theme.css"
+                               style="flex-grow: 1; margin-bottom: 0;">
+                        <button class="form-button form-button-secondary" id="apply-remote-theme-btn"
+                                style="flex-shrink: 0; width: auto; padding: 0 15px; margin-top: 0;">应用
+                        </button>
                     </div>
                     <p class="form-group-description">模式二：直接输入单个CSS文件的URL来立即替换样式。</p>
                 </div>
@@ -198,9 +215,30 @@
                               placeholder="定义群聊时AI的核心角色和规则..."></textarea>
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <button class="form-button form-button-secondary" id="restore-preset-defaults-btn">恢复为默认值</button>
-                    <button class="form-button form-button-secondary" id="delete-preset-btn" style="background-color: #ffdddd; color: #d9534f;">删除此预设</button>
+                    <button class="form-button form-button-secondary" id="restore-preset-defaults-btn">恢复为默认值
+                    </button>
+                    <button class="form-button form-button-secondary" id="delete-preset-btn"
+                            style="background-color: #ffdddd; color: #d9534f;">删除此预设
+                    </button>
                 </div>
+            </div>
+        </div>
+        <div id="char-list-screen" class="screen">
+            <div class="header">
+                <span class="back-btn" onclick="showScreen('home-screen')">‹</span>
+                <span id="char-editor-title">编辑人设</span>
+                <span class="action-btn" id="add-char-btn">+</span>
+            </div>
+            <div id="char-list" class="char-list-container">
+<!--                <div class="chat-item">-->
+<!--                    <div class="pic"><img src="https://i.postimg.cc/VkQfgzGJ/1.jpg"></div>-->
+<!--                    <div class="info">-->
+<!--                        ChatGPT-->
+<!--                    </div>-->
+<!--                    <div class="action">-->
+<!--                        <span class="action-btn" title="删除"></span>-->
+<!--                    </div>-->
+<!--                </div>-->
             </div>
         </div>
         <div id="preset-list-screen" class="screen">
@@ -367,6 +405,8 @@
     <div class="modal-content">
         <div class="modal-header"><span>聊天设置</span></div>
         <div class="modal-body">
+            <div class="form-group select-char" id="select-char" ><label for="chat-select-input">导入人设</label><select id="chat-select-input">
+            </select></div>
             <div class="form-group" id="chat-name-group"><label for="chat-name-input">备注名 / 群名</label><input
                     type="text" id="chat-name-input"></div>
             <div class="form-group" id="my-group-nickname-group"><label for="my-group-nickname-input">我的群昵称</label><input
@@ -419,7 +459,9 @@
             <div class="form-group" id="group-members-group">
                 <label>群成员人设</label>
                 <div id="group-members-settings"></div>
-                <button id="add-group-member-btn" class="form-button form-button-secondary" style="margin-top: 10px; width: auto; padding: 8px 15px;">新增成员</button>
+                <button id="add-group-member-btn" class="form-button form-button-secondary"
+                        style="margin-top: 10px; width: auto; padding: 8px 15px;">新增成员
+                </button>
             </div>
 
             <div class="form-group"><label for="max-memory">上下文记忆条数</label><input type="number" id="max-memory"
@@ -506,6 +548,9 @@
     <div class="modal-content">
         <div class="modal-header"><span>编辑群成员</span></div>
         <div class="modal-body">
+            <div class="form-group " id="select-char-group" >
+                <label for="chat-select-group-input">导入人设</label><select id="chat-select-group-input">
+            </select></div>
             <div class="form-group">
                 <label for="member-name-input">名字</label>
                 <input type="text" id="member-name-input">
@@ -534,7 +579,38 @@
         </div>
     </div>
 </div>
+<div id="char-settings-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><span>char人设</span></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="member-name-input">名字</label>
+                <input type="text" id="char-name-input" placeholder="char名字">
+            </div>
+            <div class="form-group">
+                <label for="member-persona-input">人设</label>
+                <textarea id="char-persona-input" rows="4" placeholder="char人设"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="member-pat-suffix-input">拍一拍后缀</label>
+                <input type="text" id="char-pat-suffix-input" placeholder="例如：的后背">
+            </div>
+            <div class="form-group">
+                <label>头像</label>
+                <div class="avatar-upload">
+                    <img id="char-avatar-preview" src="https://i.postimg.cc/VkQfgzGJ/1.jpg">
+                    <button onclick="document.getElementById('char-avatar-input').click()">上传头像</button>
+                    <input type="file" id="char-avatar-input" accept="image/*">
+                </div>
+            </div>
+        </div>
 
+        <div class="modal-footer">
+            <button class="cancel" id="cancel-char-settings-btn">取消</button>
+            <button class="save" id="save-char-settings-btn">保存</button>
+        </div>
+    </div>
+</div>
 <div id="theme-list-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header"><span id="theme-list-modal-title">选择主题</span></div>

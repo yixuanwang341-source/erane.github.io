@@ -2350,7 +2350,9 @@ html .app-icon:not(:last-of-type) {
 html .app-row:nth-of-type(1) .app-icon:nth-of-type(2) .icon-bg:after {
     content: '📩';
 }
-
+html .app-row:nth-of-type(1) .app-icon:nth-of-type(3) .icon-bg:after {
+    content: '👨‍👩‍👧';
+}
 html .app-row:nth-of-type(2) .app-icon:nth-of-type(1) .icon-bg:after {
     content: '🤖';
 }
@@ -2362,8 +2364,14 @@ html .app-row:nth-of-type(2) .app-icon:nth-of-type(2) .icon-bg:after {
 html .app-row:nth-of-type(2) .app-icon:nth-of-type(3) .icon-bg:after {
     content: '🎨';
 }
-
-
+/*人设*/
+html #char-list-screen{
+    top: 30px;
+    padding:0 15px 30px 15px;
+}
+html #char-list-screen .chat-item .info{
+    color: #fff;
+}
 /*世界书*/
 html #world-book-screen.active {
     /*background: rgba(255, 255, 255, 0.2);*/
