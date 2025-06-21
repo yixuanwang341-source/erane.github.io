@@ -2548,7 +2548,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 主题与外观 ---
         // 按钮：选择内置主题
         document.getElementById('open-builtin-themes-btn').addEventListener('click', () => {
-            const builtinThemeListUrl = './themeList.json';
+            const builtinThemeListUrl = 'https://raw.githubusercontent.com/erane/erane.github.io/resources/themeList.json';
             openThemeListModal(builtinThemeListUrl, '选择内置主题');
         });
 

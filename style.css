@@ -1053,7 +1053,7 @@ body {
     opacity: 1;
 }
 
-#custom-modal {
+#custom-modal , .custom-modal {
     background-color: #fff;
     width: 280px;
     border-radius: 14px;
