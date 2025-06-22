@@ -1236,9 +1236,82 @@ body {
     background-repeat: no-repeat;
     background-image: url("https://i.postimg.cc/R0R4nGvB/image.png");
 }
+.is-recall-message .content{
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    font-size: 12px;
+}
 .is-recall-message .recall-message-body span{
     color: #409EFF;
 }
 .is-recall-message .avatar-group{
     display: none;
+}
+.recall-wrap  .sender-name{
+    display: none;
+}
+
+.tips-wrap{
+    position: absolute;
+    z-index: 99;
+    left: 0;
+    top: 32px;
+    width: 100%;
+    padding: 4px 2px;
+    background: #fdf6ec;
+    text-align: center;
+    display: none;
+}
+.tips-wrap.visible{
+    display: block;
+}
+.tips-title{
+    color: #e6a23c;
+    font-size: 14px;
+}
+.tips-content img{
+    display: block;
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.tips-content img:not(:last-of-type){
+    margin-bottom: 10px;
+}
+.tips-date{
+    font-size: 12px;
+}
+.tips-content{
+    font-size: 14px;
+    display: none;
+}
+.more-info{
+    font-size: 12px;
+    color: #333;
+    margin: 10px auto;
+    display: none;
+}
+.thanks{
+    font-size: 12px;
+    color: #333;
+    margin-bottom: 10px;
+    display: none;
+}
+.tips-btn{
+    display: none;
+    background: #409EFF;
+    color: #fff;
+    width: 80px;
+    padding: 4px;
+    margin: 0 auto 10px auto;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.tips-wrap.active .tips-content,
+.tips-wrap.active .more-info,
+.tips-wrap.active .thanks,
+.tips-wrap.active .tips-btn
+{
+    display: block;
 }

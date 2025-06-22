@@ -23,9 +23,23 @@
     </script>
 </head>
 <body>
+
 <div id="phone-frame">
     <div class="notch"></div>
     <div id="phone-screen">
+        <div class="tips-wrap " data-update="1.0.0">
+            <div class="tips-title">版本更新提示(2025-06-23)</div>
+            <div class="tips-content">
+                <p class="tips-content">更新内容:聊天有概率触发ai撤回功能(需将预设重置一次方可激活)</p>
+                <img src="https://i.postimg.cc/8PDYN1ws/1.png">
+                <img src="https://i.postimg.cc/8P466FwL/2.png">
+            </div>
+            <div class="more-info">
+                如果你在使用中遇到适配问题请在DC联系: toufu_17568
+            </div>
+            <div class="thanks">谢谢你的支持</div>
+            <div class="tips-btn">关闭提示</div>
+        </div>
         <div id="status-bar">
             <span id="status-bar-time">12:00</span>
             <div id="status-bar-battery" class="battery-container">
@@ -206,7 +220,7 @@
                 </div>
                 <div class="form-group">
                     <label for="prompt-voice-input">撤回提示词</label>
-                    <textarea id="prompt-withDraw-input" rows="5" placeholder="定义AI如何发送'撤回消息'..."></textarea>
+                    <textarea id="prompt-withDrawAl-input" rows="5" placeholder="定义AI如何发送'撤回消息'..."></textarea>
                 </div>
                 <div class="form-group">
                     <label for="prompt-single-input">单聊预设 (System Prompt)</label>
