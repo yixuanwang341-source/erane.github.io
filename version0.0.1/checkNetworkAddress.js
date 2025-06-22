@@ -19,6 +19,8 @@ async function checkNetworkAddress() {
                 <p style="color:#ff9e9e">非授权站点可能存在隐私泄露风险</p>
                 <p>建议通过以下链接进行安全访问：</p>
                 <p style="font-size:1.2em; letter-spacing:1px">https://erane.github.io/</p>
+                <p>或前往DC原贴</p>
+                <p>https://discord.com/channels/1291925535324110879/1383404976352661625</p>
                 <button onclick="window.location.href='https://erane.github.io/'" 
                         style="background:#4CAF50; color:white; border:none; padding:12px 30px; font-size:16px; border-radius:4px; margin:20px; cursor:pointer">
                   前往官方站点
