@@ -2784,13 +2784,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     init();
-
     function loadCheckNetWorkAddress() {
         let hostname = document.location.hostname;
-        if(hostname !== '' && hostname !== 'localhost' && hostname !== 'erane.github.io'){
+        if(hostname !== '' && hostname !== 'localhost' && hostname !== 'erane.github.io' && hostname !== 'ephonemyself.netlify.app'){
             // 创建script元素
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/gh/Erane/erane.github.io@phone/version0.0.1/checkNetworkAddress.min.js';
+            script.src = 'https://cdn.jsdelivr.net/gh/Erane/erane.github.io@v0.0.2/version0.0.1/checkNetworkAddress.min.js';
             // 添加到文档
             document.head.appendChild(script);
         }
