@@ -2447,16 +2447,17 @@ html #custom-modal-cancel, html #custom-modal-confirm {
 }
 
 /*预设*/
-html #preset-settings-screen {
+
+html #preset-list-screen , html #preset-editor-screen{
     top: 30px;
     padding:0 15px 30px 15px;
 }
 
-html #preset-settings-screen .form-group label {
+html #preset-list-screen .form-group label {
     color: #737070;
 }
 
-html #preset-settings-screen .form-group input, html #preset-settings-screen .form-group textarea {
+html #preset-list-screen .form-group input, html #preset-list-screen .form-group textarea {
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -2464,10 +2465,16 @@ html #preset-settings-screen .form-group input, html #preset-settings-screen .fo
     color: #333;
 }
 
-html #preset-settings-screen .form-button {
+html #preset-list-screen .form-button {
     background-color: var(--primary-color);
 }
-
+html #preset-editor-screen .form-group input, html #preset-editor-screen .form-group textarea{
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    color: #333;
+}
 /*API设置*/
 html #api-settings-screen {
     top: 30px;

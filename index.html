@@ -205,6 +205,10 @@
                     <textarea id="prompt-transfer-input" rows="5" placeholder="定义AI如何进行'转账'..."></textarea>
                 </div>
                 <div class="form-group">
+                    <label for="prompt-voice-input">撤回提示词</label>
+                    <textarea id="prompt-withDraw-input" rows="5" placeholder="定义AI如何发送'撤回消息'..."></textarea>
+                </div>
+                <div class="form-group">
                     <label for="prompt-single-input">单聊预设 (System Prompt)</label>
                     <textarea id="prompt-single-input" rows="12"
                               placeholder="定义单聊时AI的核心角色和规则..."></textarea>
@@ -214,6 +218,7 @@
                     <textarea id="prompt-group-input" rows="12"
                               placeholder="定义群聊时AI的核心角色和规则..."></textarea>
                 </div>
+
                 <div style="display: flex; gap: 10px;">
                     <button class="form-button form-button-secondary" id="restore-preset-defaults-btn">恢复为默认值
                     </button>

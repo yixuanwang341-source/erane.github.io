@@ -1236,3 +1236,9 @@ body {
     background-repeat: no-repeat;
     background-image: url("https://i.postimg.cc/R0R4nGvB/image.png");
 }
+.is-recall-message .recall-message-body span{
+    color: #409EFF;
+}
+.is-recall-message .avatar-group{
+    display: none;
+}
