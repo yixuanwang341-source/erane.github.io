@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>EPhone</title>
+    <script src="https://unpkg.com/axios@1.6.7/dist/axios.min.js"></script>
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
         <link rel="stylesheet"  href="./baseStyle.css">
         <link rel="stylesheet" id="main-stylesheet"  href="./beautifyStyle.css">
@@ -27,12 +28,13 @@
 <div id="phone-frame">
     <div class="notch"></div>
     <div id="phone-screen">
-        <div class="tips-wrap " data-update="1.0.4">
-            <div class="tips-title">版本更新提示(2025-06-24)</div>
+        <div class="tips-wrap " data-update="1.0.5">
+            <div class="tips-title">版本更新提示(2025-06-25)</div>
             <div class="tips-content">
-                <p class="tips-content">
-                    修复user发送语音后ai不识别的问题
-                </p>
+                <div class="tips-content">
+                    尝试解决部分api无法拉取模型的问题
+                    <div>(如果你的api依然不能拉取模型可以在dc找我提供你的资料方便我调试)</div>
+                </div>
             </div>
             <div class="more-info">
                 如果你在使用中遇到适配问题请在DC联系: toufu_17568

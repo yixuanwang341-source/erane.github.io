@@ -1247,6 +1247,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).filter(Boolean);
         }
         try {
+            // let response = await axios({
+            //     method: 'post',
+            //     url: `${proxyUrl}/v1/chat/completions`,
+            //     headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+            //     data:   JSON.stringify({
+            //         model: model,
+            //         messages: [{role: 'system', content: systemPrompt}, ...messagesPayload],
+            //         temperature: 0.8,
+            //         stream: false
+            //     })
+            // });
+            // if(response.status !== 200){
+            //     throw new Error(`API Error: ${response.status} - ${response.data.error.message}`);
+            // }
+            // const data = response.data;
+            // console.log(data)
+            // return
+
             const response = await fetch(`${proxyUrl}/v1/chat/completions`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
@@ -2237,10 +2255,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             await db.apiConfig.put(state.apiConfig);
             alert('API设置已保存!');
         });
-        document.getElementById('fetch-models-btn').addEventListener('click', async () => {
+        let loading = false;
+        document.getElementById('fetch-models-btn').addEventListener('click', async (e) => {
+            if( loading ){return }
+            loading = true;
+            e.target.textContent = '正在获取模型列表...';
             let url = document.getElementById('proxy-url').value.trim();
             const key = document.getElementById('api-key').value.trim();
-            if (!url || !key) return alert('请先填写反代地址和密钥');
+            if (!url || !key) {
+                loading = false;
+                return alert('请先填写反代地址和密钥')
+            };
 
             // 去除/
             if (url.endsWith('/')) {
@@ -2252,11 +2277,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             try {
-                const response = await fetch(`${url}/v1/models`, {
-                    headers: {'Authorization': `Bearer ${key}`}
+               let response = await axios({
+                    method: 'get',
+                    url: `${url}/v1/models`,
+                    headers: { 'Authorization': `Bearer ${key}` }
                 });
-                if (!response.ok) throw new Error('无法获取模型列表');
-                const data = await response.json();
+                if(response.status !== 200){
+                    alert('无法获取模型列表')
+                    loading = false;
+                    e.target.textContent = '拉取模型列表';
+                    return
+                }
+                const data = response.data;
+                // const response = await fetch(`${url}/v1/models`, {
+                //     headers: {'Authorization': `Bearer ${key}`}
+                // });
+                // if (!response.ok) throw new Error('无法获取模型列表');
+                // const data = await response.json();
                 const modelSelect = document.getElementById('model-select');
                 modelSelect.innerHTML = '';
                 data.data.forEach(model => {
@@ -2266,8 +2303,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (model.id === state.apiConfig.model) option.selected = true;
                     modelSelect.appendChild(option);
                 });
+                loading = false;
                 alert('模型列表已更新');
+                e.target.textContent = '拉取模型列表';
             } catch (error) {
+                loading = false;
                 alert(`拉取模型失败: ${error.message}`);
             }
         });
