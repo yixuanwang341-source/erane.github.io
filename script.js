@@ -1218,7 +1218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (msg.type === 'voice_message') {
                     if (msg.role === 'user') return {
                         role: 'user',
-                        content: `[用户发来一条语音消息，内容是：'${msg}']`
+                        content: `[用户发来一条语音消息，内容是：'${msg.content}']`
                     };
                     else return {
                         role: 'assistant',
@@ -2169,6 +2169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 musicState.isPlaying = true;
                 updatePlayerUI();
             }
+
         });
         const chatInput = document.getElementById('chat-input');
         document.getElementById('send-btn').addEventListener('click', async () => {
