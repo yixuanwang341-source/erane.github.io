@@ -2251,13 +2251,17 @@ html * {
 html body {
     font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
     /*background: linear-gradient(180deg, #7dcded, #4682b4);*/
-    background: linear-gradient(135deg, #87ceeb, #e0f6ff);
+    background-image: linear-gradient(135deg, #87ceeb, #e0f6ff);
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
     padding: 0;
+    background-color: transparent;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 
 }
 
@@ -2285,9 +2289,19 @@ html #status-bar {
 html .notch {
     display: none;
 }
-
+html .screen{
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+html #home-screen.active{
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
 html #home-screen {
-    background: none !important;
+    /*background: none !important;*/
+
     border-radius: initial;
 }
 
@@ -2366,8 +2380,7 @@ html .app-row:nth-of-type(2) .app-icon:nth-of-type(3) .icon-bg:after {
 }
 /*人设*/
 html #char-list-screen{
-    top: 30px;
-    padding:0 15px 30px 15px;
+    padding:30px 15px 30px 15px;
 }
 html #char-list-screen .chat-item .info{
     color: #fff;
@@ -2383,8 +2396,7 @@ html #world-book-screen.active {
 }
 
 html #world-book-screen {
-    top: 30px;
-    padding:0 15px 30px 15px;
+    padding:30px 15px 30px 15px;
 }
 
 /*此处全局影响*/
@@ -2403,19 +2415,21 @@ html .screen.active .header {
 html .screen.active #world-book-list {
     background: none;
 }
-
+html #world-book-screen #world-book-list > p {
+    color: var(--secondary-bg) !important;
+}
 html .screen.active #world-book-list .item-content {
-    color: #737070;
+    color: var(--secondary-bg);
 }
 
 html #world-book-editor-screen.active {
-    top: 35px;
+    padding-top: 35px;
 }
  html #world-book-editor-screen .header {
      padding: 0 15px;
  }
 html #world-book-editor-screen.active label {
-    color: #737070;
+    color: var(--secondary-bg);
 }
 
 html #world-book-editor-screen.active input, html #world-book-editor-screen.active textarea {
@@ -2449,12 +2463,11 @@ html #custom-modal-cancel, html #custom-modal-confirm {
 /*预设*/
 
 html #preset-list-screen , html #preset-editor-screen{
-    top: 30px;
-    padding:0 15px 30px 15px;
+    padding:30px 15px 30px 15px;
 }
 
 html #preset-list-screen .form-group label {
-    color: #737070;
+    color: var(--secondary-bg);
 }
 
 html #preset-list-screen .form-group input, html #preset-list-screen .form-group textarea {
@@ -2464,7 +2477,9 @@ html #preset-list-screen .form-group input, html #preset-list-screen .form-group
     background: rgba(255, 255, 255, 0.3);
     color: #333;
 }
-
+html #preset-editor-screen .form-group label {
+    color: var(--secondary-bg);
+}
 html #preset-list-screen .form-button {
     background-color: var(--primary-color);
 }
@@ -2477,8 +2492,7 @@ html #preset-editor-screen .form-group input, html #preset-editor-screen .form-g
 }
 /*API设置*/
 html #api-settings-screen {
-    top: 30px;
-    padding:0 15px 30px 15px;
+    padding:30px 15px 30px 15px;
 }
 
 html #api-settings-screen .form-container > p:first-child {
@@ -2491,8 +2505,12 @@ html #api-settings-screen .form-container > p:first-child code {
     color: #f56c6c !important;
 }
 
-html #api-settings-screen .form-group label {
-    color: #737070;
+html #api-settings-screen .form-group label ,
+html #api-settings-screen .form-group-description,
+html #api-settings-screen .data-management-title,
+html #api-settings-screen .data-management-desc
+{
+    color: var(--secondary-bg);
 }
  html #api-settings-screen #apply-remote-theme-btn{
      background-color: var(--primary-color);
@@ -2530,8 +2548,7 @@ html #api-settings-screen #import-data-trigger-btn {
 
 /*壁纸*/
 html #wallpaper-screen {
-    top: 30px;
-    padding:0 15px 30px 15px;
+    padding:30px 15px 30px 15px;
 }
 
 html #wallpaper-screen .form-container > button:first-of-type {
@@ -2544,14 +2561,15 @@ html #wallpaper-screen .form-container > button:nth-of-type(2) {
 
 /*聊天*/
 html #chat-list-screen {
-    top: 30px;
-    padding:0 15px 30px 15px;
+    padding:30px 15px 30px 15px;
 }
 
 html #chat-list {
     background: transparent;
 }
-
+html  #chat-list > p {
+    color: var(--secondary-bg) !important;
+}
 html .group-tag {
     background: var(--primary-color);
     color: #fff;
@@ -2566,7 +2584,12 @@ html #chat-interface-screen .header {
     color: #000000;
 }
 
-html #chat-interface-screen .header .back-btn , html #chat-interface-screen .header #chat-header-title{
+html #chat-interface-screen .header .back-btn ,
+html #chat-interface-screen .header #chat-header-title,
+html #chat-interface-screen #selection-cancel-btn,
+html #chat-interface-screen #selection-count,
+html #chat-interface-screen #selection-delete-btn
+{
     color: #000000 !important;
 }
 

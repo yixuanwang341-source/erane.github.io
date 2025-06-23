@@ -153,6 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             activePresetId: null,
             chars: [],
             updateLogVersion: '',
+            bgHtml:undefined
         };
         state.globalSettings = {...defaultGlobalSettings, ...(globalSettings || {})};
         state.userStickers = userStickers || [];
@@ -508,7 +509,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 themeItem.className = 'theme-item';
                 themeItem.innerHTML = `
                     <div class="theme-item-header">
-                        <input type="radio" id="${themeId}" name="theme-selection" value="${theme.css_url}">
+                        <input type="radio" id="${themeId}" data-theme="${theme.bg_html}" name="theme-selection" value="${theme.css_url}">
                         <label for="${themeId}">${theme.description || '无标题'}</label>
                     </div>
                     <div class="theme-item-details">
@@ -532,11 +533,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         const url = selectedRadio.value;
+        const bgHtml = selectedRadio.dataset.theme;
         // 应用并保存主题
         switchStylesheet(url);
         state.globalSettings.remoteThemeUrl = url;
+        if(bgHtml && bgHtml !== 'undefined'){
+            state.globalSettings.bgHtml = bgHtml;
+        }else {
+            state.globalSettings.bgHtml = '#phone-screen';
+        }
         await db.globalSettings.put(state.globalSettings);
         showCustomAlert("主题已更新", "新主题已应用并保存。");
+        applyGlobalWallpaper();
         closeThemeListModal();
     }
 
@@ -880,9 +888,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.renderWallpaperScreenProxy = renderWallpaperScreen;
 
     function applyGlobalWallpaper() {
-        const homeScreen = document.getElementById('home-screen');
+        document.querySelector('#home-screen').style = ''
+        document.querySelector('body').style = ''
+        const homeScreen = document.querySelector(state.globalSettings.bgHtml || '#home-screen');
         const wallpaper = state.globalSettings.wallpaper;
-        if (wallpaper && wallpaper.startsWith('data:image')) homeScreen.style.backgroundImage = `url(${wallpaper})`; else if (wallpaper) homeScreen.style.backgroundImage = wallpaper;
+        if (wallpaper && wallpaper.startsWith('data:image')) homeScreen.style.backgroundImage = `url(${wallpaper})`; else if (wallpaper) homeScreen.classList.add('base-bg-color')
     }
 
     function renderWorldBookScreen() {
