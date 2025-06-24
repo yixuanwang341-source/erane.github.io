@@ -2297,6 +2297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     e.target.textContent = '拉取模型列表';
                     return
                 }
+                loading = false;
                 const data = response.data;
                 // const response = await fetch(`${url}/v1/models`, {
                 //     headers: {'Authorization': `Bearer ${key}`}
@@ -2317,6 +2318,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 e.target.textContent = '拉取模型列表';
             } catch (error) {
                 loading = false;
+                e.target.textContent = '拉取模型列表';
                 alert(`拉取模型失败: ${error.message}`);
             }
         });
