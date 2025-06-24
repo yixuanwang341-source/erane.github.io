@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/kGYP6CQw/6.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>EPhone</title>
     <script src="https://unpkg.com/axios@1.6.7/dist/axios.min.js"></script>
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
@@ -28,13 +31,13 @@
 <div id="phone-frame">
     <div class="notch"></div>
     <div id="phone-screen">
-        <div class="tips-wrap " data-update="1.0.5">
-            <div class="tips-title">版本更新提示(2025-06-25)</div>
+        <div class="tips-wrap " data-update="1.0.6">
+            <div class="tips-title">版本更新提示(2025-06-24)</div>
             <div class="tips-content">
                 <div class="tips-content">
-                    尝试解决部分api无法拉取模型的问题
-                    <div>(如果你的api依然不能拉取模型可以在dc找我提供你的资料方便我调试)</div>
+                    现在, 首页app支持更换图标<span style="color: red">长按2s桌面图标即可修改图标</span>
                 </div>
+                <img src="https://i.postimg.cc/kXkqk5Z0/1.png">
             </div>
             <div class="more-info">
                 如果你在使用中遇到适配问题请在DC联系: toufu_17568
@@ -65,24 +68,24 @@
             </div>
             <div id="app-grid">
                 <div class="app-row">
-                    <div class="app-icon" onclick="showScreen('world-book-screen')">
+                    <div class="app-icon world-book-icon" data-icon-name="world-book"  >
                         <div class="icon-bg"><img src="https://i.postimg.cc/htP74QkL/1.jpg" alt="世界书"></div>
                         <span class="label">世界书</span></div>
-                    <div class="app-icon" onclick="showScreen('preset-list-screen')">
+                    <div class="app-icon preset-list-icon" data-icon-name="preset-list" >
                         <div class="icon-bg"><img src="https://i.postimg.cc/MKfTfsmq/1.png" alt="预设设置"></div>
                         <span class="label">预设设置</span></div>
-                    <div class="app-icon" onclick="showScreen('char-list-screen')">
+                    <div class="app-icon char-list-icon" data-icon-name="char-list"  >
                         <div class="icon-bg"><img src="https://i.postimg.cc/yNL7tkqC/image.png"  alt="预设设置"></div>
                         <span class="label">char人设</span></div>
                 </div>
                 <div class="app-row">
-                    <div class="app-icon" onclick="showScreen('chat-list-screen')">
+                    <div class="app-icon chat-list-icon" data-icon-name="chat-list" >
                         <div class="icon-bg"><img src="https://i.postimg.cc/gr2ndvPL/QQ.jpg" alt="QQ"></div>
                         <span class="label">QQ</span></div>
-                    <div class="app-icon" onclick="showScreen('api-settings-screen')">
+                    <div class="app-icon api-settings-icon" data-icon-name="api-settings"  >
                         <div class="icon-bg"><img src="https://i.postimg.cc/wy631NyP/settings.jpg" alt="API设置"></div>
                         <span class="label">API设置</span></div>
-                    <div class="app-icon" onclick="showScreen('wallpaper-screen')">
+                    <div class="app-icon wallpaper-icon" data-icon-name="wallpaper"  >
                         <div class="icon-bg"><img src="https://i.postimg.cc/q6qRLdGx/photo.jpg" alt="壁纸"></div>
                         <span class="label">壁纸</span></div>
                 </div>
@@ -692,6 +695,71 @@
         <p id="battery-alert-text"></p>
     </div>
 </div>
+
+<div class="icon-modal-overlay " id="modalOverlay">
+    <div class="icon-modal">
+        <div class="modal-tabs">
+            <button class="tab-btn active" data-tab="local">本地上传</button>
+            <button class="tab-btn" data-tab="url">网络链接</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- 本地上传面板 -->
+            <div class="tab-pane active" id="local-tab">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p class="upload-text">点击</p>
+                    <button class="upload-btn">
+                        <i class="fas fa-folder-open"></i> 选择图片
+                    </button>
+                    <input type="file" class="file-input" id="fileInput" accept="image/*">
+                </div>
+
+                <div class="preview-container" id="localPreviewContainer">
+                    <h3 class="preview-title">图片预览</h3>
+                    <div class="preview-area">
+                        <img class="preview-image" id="localPreviewImage" alt="预览图片">
+                        <p class="preview-placeholder" id="localPreviewPlaceholder">图片将在此处显示</p>
+                    </div>
+
+                    <div class="base64-info" id="base64Info">
+                        <div class="base64-title">Base64编码 (前100字符):</div>
+                        <div class="base64-content" id="base64Content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 网络链接面板 -->
+            <div class="tab-pane" id="url-tab">
+                <div class="url-input-container">
+                    <input type="url" class="url-input" id="urlInput" placeholder="输入图片URL (如: https://example.com/image.jpg)">
+                    <button class="load-btn" id="loadUrlBtn">加载</button>
+                </div>
+
+                <div class="preview-container" id="urlPreviewContainer">
+                    <h3 class="preview-title">图片预览</h3>
+                    <div class="preview-area">
+                        <img class="preview-image" id="urlPreviewImage" alt="预览图片">
+                        <p class="preview-placeholder" id="urlPreviewPlaceholder">加载的图片将在此处显示</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loadingIndicator">
+                <div class="loading-spinner"></div>
+                <p class="loading-text" id="loadingText">处理中，请稍候...</p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="action-buttons">
+                <button class="modal-btn cancel-btn" id="cancelBtn">取消</button>
+                <button class="modal-btn confirm-btn" id="confirmBtn" disabled>确认上传</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <audio id="audio-player" style="display:none;"></audio>
 

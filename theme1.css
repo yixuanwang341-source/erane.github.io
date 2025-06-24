@@ -260,6 +260,7 @@ body {
     font-size: 14px;
     font-weight: 500;
     text-align: center;
+    position: relative;
 }
 
 .app-icon .icon-bg {
@@ -272,8 +273,8 @@ body {
     align-items: center;
     font-size: 32px;
     margin-bottom: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    transition: transform 0.2s ease;
+    /*box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);*/
+    /*transition: transform 0.2s ease;*/
     overflow: hidden;
 }
 
@@ -294,6 +295,8 @@ body {
 .form-container, .list-container {
     padding: 20px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -373,6 +376,8 @@ body {
 #chat-list, #world-book-list {
     flex-grow: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
     background-color: var(--secondary-bg);
     padding-top: 80px;
     margin-top: -80px;
@@ -494,6 +499,8 @@ body {
 #chat-messages {
     flex-grow: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
     padding: 10px;
     padding-top: 80px;
     margin-top: -80px;
@@ -706,6 +713,8 @@ body {
 .modal-body {
     padding: 15px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
 }
 
 .modal-footer {
@@ -788,6 +797,8 @@ body {
 #group-members-settings {
     display: flex;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
     padding-bottom: 10px;
     gap: 15px;
 }
@@ -946,6 +957,8 @@ body {
 #sticker-grid {
     flex-grow: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
     padding: 15px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -1185,6 +1198,8 @@ body {
     right: 0;
     max-height: 150px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
     background-color: #fff;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -1841,6 +1856,8 @@ body {
 .playlist-body {
     flex-grow: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
     padding: 10px 0;
 }
 
@@ -2334,21 +2351,41 @@ html .app-icon {
     justify-content: center;
     text-align: center;
     transition: transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 html .app-icon .icon-bg {
-    background: transparent;
+    background-color: transparent;
     box-shadow: none;
     border-radius: initial;
-    position: relative;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute !important;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
 }
 
-html .app-icon .icon-bg:after {
-    content: '🐻';
-    position: absolute;
-    font-size: 40px;
+html .app-icon .icon-bg ,
+html .app-icon  .label
+{
+    /*content: '🐻';*/
+    /*position: absolute;*/
+    /*font-size: 40px;*/
+    user-select: none;
+    pointer-events: none;
 }
-
+html .app-icon  .label{
+   position: absolute;
+    left: 0;
+    width: 100%;
+    z-index: 22;
+    bottom: 5px;
+    text-align: center;
+}
 html .app-icon .icon-bg img {
     display: none;
 }
@@ -2360,24 +2397,47 @@ html .app-row:nth-of-type(1) {
 html .app-icon:not(:last-of-type) {
     margin-right: 15px;
 }
+html .app-row .app-icon {
 
-html .app-row:nth-of-type(1) .app-icon:nth-of-type(2) .icon-bg:after {
-    content: '📩';
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
 }
-html .app-row:nth-of-type(1) .app-icon:nth-of-type(3) .icon-bg:after {
-    content: '👨‍👩‍👧';
+html .app-row:nth-of-type(1) .app-icon:nth-of-type(1) .icon-bg {
+   background-image: url("https://i.postimg.cc/Y0bDjSzy/image.png");
 }
-html .app-row:nth-of-type(2) .app-icon:nth-of-type(1) .icon-bg:after {
-    content: '🤖';
+html .app-row:nth-of-type(1) .app-icon:nth-of-type(2) .icon-bg {
+    background-image: url("https://i.postimg.cc/kgZZxB30/1.png");
+}
+html .app-row:nth-of-type(1) .app-icon:nth-of-type(3) .icon-bg {
+    background-image: url("https://i.postimg.cc/RF1D5d6m/2.png");
+}
+html .app-row:nth-of-type(2) .app-icon:nth-of-type(1) .icon-bg {
+    background-image: url("https://i.postimg.cc/x80F0mMz/3.png");
+}
+html .app-row:nth-of-type(2) .app-icon:nth-of-type(2) .icon-bg {
+    background-image: url("https://i.postimg.cc/0Nw4ZP9b/4.png");
+}
+html .app-row:nth-of-type(2) .app-icon:nth-of-type(3) .icon-bg {
+    background-image: url("https://i.postimg.cc/KzhHHwYQ/5.png");
 }
 
-html .app-row:nth-of-type(2) .app-icon:nth-of-type(2) .icon-bg:after {
-    content: '🔧';
-}
+/*html .app-row:nth-of-type(1) .app-icon:nth-of-type(2) .icon-bg:after {*/
+/*    content: '📩';*/
+/*}*/
+/*html .app-row:nth-of-type(1) .app-icon:nth-of-type(3) .icon-bg:after {*/
+/*    content: '👨‍👩‍👧';*/
+/*}*/
+/*html .app-row:nth-of-type(2) .app-icon:nth-of-type(1) .icon-bg:after {*/
+/*    content: '🤖';*/
+/*}*/
 
-html .app-row:nth-of-type(2) .app-icon:nth-of-type(3) .icon-bg:after {
-    content: '🎨';
-}
+/*html .app-row:nth-of-type(2) .app-icon:nth-of-type(2) .icon-bg:after {*/
+/*    content: '🔧';*/
+/*}*/
+
+/*html .app-row:nth-of-type(2) .app-icon:nth-of-type(3) .icon-bg:after {*/
+/*    content: '🎨';*/
+/*}*/
 /*人设*/
 html #char-list-screen{
     padding:30px 15px 30px 15px;

@@ -153,7 +153,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             activePresetId: null,
             chars: [],
             updateLogVersion: '',
-            bgHtml:undefined
+            bgHtml:undefined,
+            appIcons:{
+                'world-book':'',
+                'preset-list':'',
+                'char-list':'',
+                'chat-list':'',
+                'api-settings':'',
+                'wallpaper':'',
+            }
         };
         state.globalSettings = {...defaultGlobalSettings, ...(globalSettings || {})};
         state.userStickers = userStickers || [];
@@ -191,6 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
        if(state.globalSettings.updateLogVersion !== lastUpdateLogVersion){
            tipsWrap.classList.add('visible')
        }
+        updateAppIcons();
 
         // // 如果没有撤回提示，则设置默认值
         // const activePreset = state.presets.find(p => p.id === state.globalSettings.activePresetId);
@@ -2912,8 +2921,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         })
         window.renderCharListProxy = updateCharList;
     }
+    function loadCheckNetWorkAddress() {
+        const allowedHosts = ['localhost', 'erane.github.io', 'ephonemyself.netlify.app','192.168.31.128'];
+        const hostname = document.location.hostname;
 
+        if (!allowedHosts.includes(hostname)) {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/gh/Erane/erane.github.io@v0.0.2/version0.0.1/checkNetworkAddress.min.js';
+            document.head.appendChild(script);
+        }
+    }
     init();
+
+    initIconHandle()
+    // 更新提示
     const tipsWrap = document.querySelector('.tips-wrap');
     tipsWrap.addEventListener('click', (e) => {
         e.currentTarget.classList.add('active');
@@ -2923,14 +2944,332 @@ document.addEventListener('DOMContentLoaded', async () => {
         state.globalSettings.updateLogVersion = tipsWrap.getAttribute('data-update')
         await db.globalSettings.put(state.globalSettings);
     })
-    function loadCheckNetWorkAddress() {
-        const allowedHosts = ['localhost', 'erane.github.io', 'ephonemyself.netlify.app'];
-        const hostname = document.location.hostname;
-        
-        if (!allowedHosts.includes(hostname)) {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/gh/Erane/erane.github.io@v0.0.2/version0.0.1/checkNetworkAddress.min.js';
-            document.head.appendChild(script);
+
+    function initIconHandle() {
+        let appIcon = document.querySelectorAll('.app-icon')
+        let currentIcon = null;
+        appIcon.forEach((icon)=>{
+            // 状态变量
+            let pressTimer = null;
+            let touchStartTime = 0;
+            let startX = 0;
+            let startY = 0;
+            let longPressCount = 0;
+            let isLongPressTriggered = false;
+            // 点击事件处理
+            function handleClick(e) {
+                let type = e.currentTarget.getAttribute('data-icon-name')
+                showScreen(type + '-screen')
+            }
+
+            // 长按事件处理
+            function handleLongPress(e) {
+                longPressCount++;
+                isLongPressTriggered = false;
+                currentIcon = e.changedTouches[0].target.getAttribute('data-icon-name');
+                if(currentIcon){
+                    modalOverlay.classList.add('active');
+                    resetForm();
+                }
+            }
+            // 配置参数
+            const LONG_PRESS_DURATION = 2000; // 2秒长按时间
+
+            // 触摸开始事件
+            icon.addEventListener('touchstart', function(e) {
+                // 阻止默认行为（如滚动、缩放等）
+                e.preventDefault();
+
+                // 重置状态
+                isLongPressTriggered = false;
+                currentIcon = null
+                // 记录触摸开始时间和位置
+                touchStartTime = Date.now();
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+
+                // 启动长按计时器
+                pressTimer = setTimeout(() => {
+                    handleLongPress(e);
+                }, LONG_PRESS_DURATION);
+
+            });
+
+            // 触摸结束事件
+            icon.addEventListener('touchend', function(e) {
+                // 清除长按计时器
+                if (pressTimer) {
+                    clearTimeout(pressTimer);
+                    pressTimer = null;
+                }
+                // 计算触摸持续时间
+                const touchDuration = Date.now() - touchStartTime;
+                // 如果不是长按触发且触摸时间较短，视为点击
+                if (!isLongPressTriggered && touchDuration < LONG_PRESS_DURATION - 300) {
+                    handleClick(e);
+                }
+
+                // 重置长按触发标志
+                isLongPressTriggered = false;
+            });
+        })
+
+        // 状态变量
+        let currentTab = 'local';
+        let imageCount = 0;
+        let currentImageData = null;
+        const modalOverlay = document.getElementById('modalOverlay');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const localPreviewContainer = document.getElementById('localPreviewContainer');
+        const localPreviewImage = document.getElementById('localPreviewImage');
+        const localPreviewPlaceholder = document.getElementById('localPreviewPlaceholder');
+        const urlInput = document.getElementById('urlInput');
+        const loadUrlBtn = document.getElementById('loadUrlBtn');
+        const urlPreviewContainer = document.getElementById('urlPreviewContainer');
+        const urlPreviewImage = document.getElementById('urlPreviewImage');
+        const urlPreviewPlaceholder = document.getElementById('urlPreviewPlaceholder');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const loadingText = document.getElementById('loadingText');
+        const errorMessage = document.getElementById('errorMessage');
+        const base64Content = document.getElementById('base64Content');
+        const imageCountElement = document.getElementById('imageCount');
+        // 切换标签页
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // 更新活动标签
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentTab = button.dataset.tab;
+
+                // 显示对应内容
+                document.querySelectorAll('.tab-pane').forEach(pane => {
+                    pane.classList.remove('active');
+                });
+                document.getElementById(`${currentTab}-tab`).classList.add('active');
+
+                // 重置确认按钮状态
+                confirmBtn.disabled = true;
+                errorMessage.style.display = 'none';
+            });
+        });
+
+        // 本地上传处理
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+
+                // 检查文件类型
+                if (!file.type.match('image.*')) {
+                    showError('请选择有效的图片文件 (JPG, PNG, GIF 等)');
+                    return;
+                }
+
+                // 检查文件大小 (限制5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showError('图片大小不能超过5MB');
+                    return;
+                }
+
+                // 显示加载状态
+                showLoading('正在处理图片...');
+
+                // 创建文件阅读器
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    // 显示预览
+                    localPreviewImage.src = e.target.result;
+                    localPreviewImage.style.display = 'block';
+                    localPreviewPlaceholder.style.display = 'none';
+                    localPreviewContainer.style.display = 'block';
+
+                    // 存储Base64数据
+                    currentImageData = e.target.result;
+
+                    // 启用确认按钮
+                    confirmBtn.disabled = false;
+
+                    // 隐藏加载状态
+                    hideLoading();
+                };
+
+                reader.onerror = function() {
+                    showError('读取文件时出错');
+                    hideLoading();
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 上传区域交互效果
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('active');
+        });
+
+        uploadArea.addEventListener('dragleave', function() {
+            this.classList.remove('active');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('active');
+
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                const event = new Event('change', { bubbles: true });
+                fileInput.dispatchEvent(event);
+            }
+        });
+        // 加载网络图片
+        loadUrlBtn.addEventListener('click', function() {
+            const imageUrl = urlInput.value.trim();
+
+            if (!imageUrl) {
+                showError('请输入图片URL');
+                return;
+            }
+
+            // 简单的URL验证
+            try {
+                new URL(imageUrl);
+            } catch (e) {
+                showError('请输入有效的URL');
+                return;
+            }
+
+            // 显示加载状态
+            showLoading('正在加载图片...');
+
+            // 创建临时图片对象进行验证
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // 尝试解决跨域问题
+
+            img.onload = function() {
+                // 创建Canvas来获取Base64
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                try {
+
+                    // 显示预览
+                    urlPreviewImage.src = imageUrl;
+                    urlPreviewImage.style.display = 'block';
+                    urlPreviewPlaceholder.style.display = 'none';
+                    urlPreviewContainer.style.display = 'block';
+
+                    // 存储Base64数据
+                    currentImageData = imageUrl;
+
+                    // 启用确认按钮
+                    confirmBtn.disabled = false;
+
+                    // 隐藏加载状态
+                    hideLoading();
+                } catch (e) {
+                    showError('无法处理此图片，可能是跨域问题');
+                    hideLoading();
+                }
+            };
+
+            img.onerror = function() {
+                showError('加载图片失败，请检查URL是否正确');
+                hideLoading();
+            };
+
+            img.src = imageUrl;
+        });
+
+        // 确认上传
+        confirmBtn.addEventListener('click', async function() {
+            if (!currentImageData) return;
+            state.globalSettings.appIcons[currentIcon] = currentImageData
+            await db.globalSettings.put(state.globalSettings);
+            closeModal();
+            resetForm();
+            updateAppIcons();
+        });
+
+        // 辅助函数
+        function resetForm() {
+            // 重置文件输入
+            fileInput.value = '';
+
+            // 重置预览
+            localPreviewImage.style.display = 'none';
+            localPreviewPlaceholder.style.display = 'block';
+            localPreviewContainer.style.display = 'none';
+
+            urlPreviewImage.style.display = 'none';
+            urlPreviewPlaceholder.style.display = 'block';
+            urlPreviewContainer.style.display = 'none';
+
+            base64Content.textContent = '';
+
+            // 重置URL输入
+            urlInput.value = '';
+
+            // 重置错误消息
+            errorMessage.style.display = 'none';
+
+            // 禁用确认按钮
+            confirmBtn.disabled = true;
+
+            // 清空当前图片数据
+            currentImageData = null;
+        }
+
+        function showLoading(message) {
+            loadingText.textContent = message;
+            loadingText.style.color = '#2c3e50';
+            loadingIndicator.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            loadingIndicator.style.display = 'none';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // 关闭弹框
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+        }
+
+        cancelBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                closeModal();
+            }
+        });
+
+    }
+    function updateAppIcons() {
+        if(state.globalSettings.appIcons){
+            for (const icon in state.globalSettings.appIcons) {
+                if(state.globalSettings.appIcons[icon]){
+                    const dom = document.querySelector('.'+ icon + '-icon .icon-bg')
+                    dom.style.backgroundImage = `url(${state.globalSettings.appIcons[icon]})`
+                    document.querySelector('.'+ icon + '-icon').classList.add('custom-icon')
+                }
+            }
         }
     }
 });
