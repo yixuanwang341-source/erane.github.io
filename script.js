@@ -6,7 +6,7 @@ function showScreen(screenId) {
         exitMessageEditMode(false);
     }
 
-    if (screenId === 'chat-list-screen') window.renderChatListProxy();
+    if (screenId === 'chat-list-screen') window.renderChatListProxy('init');
     if (screenId === 'api-settings-screen') window.renderApiSettingsProxy();
     if (screenId === 'wallpaper-screen') window.renderWallpaperScreenProxy();
     if (screenId === 'world-book-screen') window.renderWorldBookScreenProxy();
@@ -760,13 +760,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     //
     // window.renderPresetSettingsProxy = renderPresetSettings;
 
-    function renderChatList() {
+
+
+    function renderChatList(e) {
         const chatListEl = document.getElementById('chat-list');
         chatListEl.innerHTML = '';
         if (Object.keys(state.chats).length === 0) {
             chatListEl.innerHTML = '<p style="text-align:center; color: #8a8a8a; margin-top: 50px;">点击右上角 "+" 或群组图标添加聊天</p>';
             return;
         }
+        // if(e === 'init'){
+        //     Object.keys(state.chats).forEach(chatId => {
+        //         triggerAiResponse(chatId)
+        //     })
+        // }
         Object.values(state.chats).sort((a, b) => (b.history.slice(-1)[0]?.timestamp || 0) - (a.history.slice(-1)[0]?.timestamp || 0)).forEach(chat => {
             const lastMsgObj = chat.history.slice(-1)[0] || {};
             let lastMsgDisplay;
@@ -1107,12 +1114,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-    async function triggerAiResponse() {
-        if (!state.activeChatId) return;
-        const chatId = state.activeChatId;
-        const chat = state.chats[chatId];
-        document.getElementById('typing-indicator').style.display = 'block';
+    async function triggerAiResponse(autoSendChatId = undefined) {
+        if (!state.activeChatId && !autoSendChatId) return;
 
+        const chatId = state.activeChatId || autoSendChatId;
+        const chat = state.chats[chatId];
+        if(state.activeChatId){
+            document.getElementById('typing-indicator').style.display = 'block';
+        }
         const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
 
         if (!rawProxyUrl || !apiKey || !model) {
@@ -1147,9 +1156,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         let musicContext = '';
-        if (musicState.isActive && musicState.activeChatId === chatId && musicState.currentIndex > -1) {
-            const currentTrack = musicState.playlist[musicState.currentIndex];
-            musicContext = `\n\n# 当前情景\n你正在和用户一起听歌。当前播放的歌曲是：${currentTrack.name} - ${currentTrack.artist}。请在对话中自然地融入这个情境。\n`;
+        if(state.activeChatId){
+            if (musicState.isActive && musicState.activeChatId === chatId && musicState.currentIndex > -1) {
+                const currentTrack = musicState.playlist[musicState.currentIndex];
+                musicContext = `\n\n# 当前情景\n你正在和用户一起听歌。当前播放的歌曲是：${currentTrack.name} - ${currentTrack.artist}。请在对话中自然地融入这个情境。\n`;
+            }
         }
         let systemPrompt, messagesPayload;
         const maxMemory = parseInt(chat.settings.maxMemory) || 10;
@@ -1206,6 +1217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .replace('{aiVoiceInstructions}', aiVoiceInstructions)
                 .replace('{transferInstructions}', transferInstructions)
                 .replace('{aiWithDrawInstructions}', aiWithDrawInstructions);
+
             messagesPayload = historySlice.map(msg => {
                 if (msg.type === 'pat') {
                     return {role: 'user', content: `[拍一拍 ${msg.content}]`};
@@ -1254,26 +1266,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 };
                 return null;
             }).filter(Boolean);
+            let assistantList = historySlice.filter((item)=>{
+                return item.role === 'assistant'
+            })
+            if(assistantList.length){
+                let timestamp = assistantList[assistantList.length - 1].timestamp;
+                if(timestamp){
+                    systemPrompt += `\n\n[你上一次回复我的时间是: ${new Date(timestamp)}。当前时间是: ${new Date()}。你需要感知现实时间的流逝]`;
+                }
+            }
         }
         try {
-            // let response = await axios({
-            //     method: 'post',
-            //     url: `${proxyUrl}/v1/chat/completions`,
-            //     headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
-            //     data:   JSON.stringify({
-            //         model: model,
-            //         messages: [{role: 'system', content: systemPrompt}, ...messagesPayload],
-            //         temperature: 0.8,
-            //         stream: false
-            //     })
-            // });
-            // if(response.status !== 200){
-            //     throw new Error(`API Error: ${response.status} - ${response.data.error.message}`);
-            // }
-            // const data = response.data;
-            // console.log(data)
-            // return
-
             const response = await fetch(`${proxyUrl}/v1/chat/completions`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
@@ -1293,7 +1296,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             let messagesArray = parseAiResponse(aiResponseContent);
             // 提取撤回信息的内容
             messagesArray = removeRecalledContent(messagesArray,chat.isGroup);
-            console.log(messagesArray)
             let notificationShown = false;
             const isViewingThisChat = document.getElementById('chat-interface-screen').classList.contains('active') && state.activeChatId === chatId;
             for (const msgData of messagesArray) {
