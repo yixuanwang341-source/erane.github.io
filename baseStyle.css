@@ -281,7 +281,9 @@ body {
     padding-top: 80px;
     margin-top: -80px;
 }
-
+#chat-list{
+    padding-bottom: 45px;
+}
 .list-item {
     display: flex;
     flex-direction: column;
@@ -1278,9 +1280,24 @@ body {
     background: #fdf6ec;
     text-align: center;
     display: none;
+    transition: all 0.2s;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
 }
 .tips-wrap.visible{
     display: block;
+}
+.tips-wrap.active.important-updates{
+    top: 0;
+    height: 100%;
+    padding:  10px;
+}
+.tips-wrap.active.important-updates .tips-content{
+    text-align: left;
+}
+.tips-wrap.active.important-updates img{
+    width: 100%;
+    max-width: 100%;
 }
 .tips-title{
     color: #e6a23c;
@@ -1440,6 +1457,9 @@ body {
 
 .tab-content {
     padding: 25px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    max-height: 500px;
 }
 
 .tab-pane {
@@ -1770,4 +1790,73 @@ body {
 {
     user-select: none;
     pointer-events: none;
+}
+.icon-modal-overlay.active.describe .image-describe,
+.icon-modal-overlay.active.describe .moment-post,
+.icon-modal-overlay.active.describe .optional,
+.icon-modal-overlay.active.name .name-describe
+{
+    display: block;
+}
+.icon-modal-overlay.active.describe .upload-icon,
+.icon-modal-overlay.active.describe .upload-text,
+.optional,
+.name-describe
+{
+    display: none;
+}
+.image-describe,
+.name-describe
+{
+    display: none;
+    margin-top: 10px;
+}
+.moment-post{
+    margin-bottom: 10px;
+    display: none;
+}
+.image-describe input,
+.moment-post textarea,
+.name-describe input
+{
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: border 0.3s;
+    width: 100%;
+    box-sizing: border-box;
+}
+.icon-modal-overlay.active.describe .optional{
+    text-align: center;
+    color: #7f8c8d;
+}
+.moment-user-name{
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+    position: absolute;
+    bottom: 0;
+    right: 106px;
+}
+.moment-images img{
+    display: block;
+    max-width: 100%;
+}
+.bottom-nav{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    overflow: hidden;
+}
+.bottom-nav .nav-item{
+    flex: 1;
+    padding: 10px ;
+    text-align: center;
+    border-top: 1px solid #e0e0e0;
+}
+.bottom-nav .nav-item:not(:last-of-type){
+    border-right: 1px solid #e0e0e0;
 }

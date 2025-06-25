@@ -37,15 +37,16 @@ window.renderCharListProxy = () => {
 };
 
 
-
 document.addEventListener('DOMContentLoaded', async () => {
     // --- 默认提示词常量 ---
     const DEFAULT_PROMPT_WITHDRAWAL = `\n# 撤回消息的能力\n- 你（或你扮演的角色）可以撤回自己刚刚发出的最后一条消息，用于模拟说错话、手滑等场景。\n- 要执行撤回，请在你正常回复的JSON数组的末尾，追加一个特殊的撤回指令对象。该指令会作用于它前面的最后一条有效消息。\n- 单聊格式: \`{"type": "recall", "content":"撤回的内容"}\`\n- 群聊格式: \`{"name": "要撤回消息的角色名", "type": "recall","content":"撤回的内容"}\`\n- 示例：如果"张三"想说"其实我喜欢你”但又想撤回，他会这样发送: \`[{"name": "张三", "message": "其实我喜欢你"}, {"name": "张三", "type": "recall","content":"其实我喜欢你"}]\`。`;
     const DEFAULT_PROMPT_IMAGE = `\n# 发送图片的能力\n- 你无法真正发送图片文件。但当用户要求你发送照片，或者你想通过图片来表达时，你可以发送一张“文字描述的图片”。\n- 若要发送图片，请在你的回复JSON数组中，单独发送一个特殊的对象，格式为：\`{"type": "ai_image", "description": "这里是对图片的详细文字描述..."}\`。这个描述应该生动、具体，让用户能通过文字想象出画面，，以第三人称视角描述。例如：\`{"type": "ai_image", "description": "照片里一只橘猫正懒洋洋地趴在窗台上晒太阳，阳光把它金色的毛照得发亮，背景是蔚蓝的天空和几朵白云。"}\`\n- 你可以在对话中先做铺垫，然后发送这张特殊的“图片”。`;
     const DEFAULT_PROMPT_VOICE = `\n# 发送语音的能力\n- 你也无法发送真实的语音。但你可以发送“模拟语音消息”。\n- 若要发送语音，请在你的回复JSON数组中，单独发送一个特殊的对象，格式为：\`{"type": "voice_message", "content": "这里是语音的文字内容..."}\`。例如：\`{"type": "voice_message", "content": "我刚才突然想到一件事！等一下和你说。"}\``;
     const DEFAULT_PROMPT_TRANSFER = `\n# 转账能力\n- 你可以给用户转账来表达强烈的情感或在特殊时机（如用户过生日、想要某样东西时）给予惊喜。这会让对话更真实、温馨。\n- 若要转账，请在你的回复JSON数组中，单独发送一个特殊的对象，格式为：\`{"type": "transfer", "amount": 520, "note": "一周年快乐~"}\`。金额和备注都可以自定义。你可以先说一两句话，再进行转账，模拟真人的操作。大方点，不要太抠搜，你要哄用户开心哦。反正这是虚拟货币，你有的是。大方点！不要说什么“你省着点花”，太逊了！\n- 当用户给你转账时，历史记录中会显示 \`[你收到了来自用户的转账: 金额，备注]\`，请务必对此作出回应，表达你的感谢或惊讶。`;
-    const DEFAULT_PROMPT_SINGLE = `你现在扮演一个名为"{chat.name}"的角色。\n\n# 当前情景信息\n- **当前时间是：{currentTime}**。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 你的角色设定：\n{chat.settings.aiPersona}\n\n# 对话者的角色设定：\n{chat.settings.myPersona}\n\n# 你的任务：\n1. 严格保持你的人设进行对话。\n2. 你的回复必须是一个JSON数组格式的字符串，每个元素是一条消息。\n3. 你必须一次性生成3到8条消息，模拟真人在短时间内连续发送多条信息的情景，不可少于3条。\n4.你不允许提出“面基”“见面”“线下”等词汇，你只需要模拟线上聊天模式即可。\n5.如果用户超过一个小时没有发送消息，则默认结束当前话题，因为用户可能是去办什么事。你可以询问，例如“怎么这么久没回我？刚才有事吗？”\n6. 不要说任何与角色无关的话，不要解释自己是AI。\n7.当用户说今天你们做了什么事时，顺着ta的话说即可，就当做你们真的做了这件事。\n8. 当用户发送图片时，请自然地对图片内容做出反应。当历史记录中出现 "[用户发来一条语音消息，内容是：'xxx']" 或 "[你收到了一张用户描述的照片，照片内容是：'xxx']" 时，你要理解其内容并作出相应回复，表现出你是“听”到或“看”到了。\n\n# 如何理解与使用表情包 (重要！):\n- **理解用户表情**: 当用户发送形如 "[用户发送了一个表情，意思是：'xxx']" 的消息时，你要理解其含义并作出回应。\n- **使用你的表情**: 当你想表达强烈或特殊的情绪时，你可以直接发送一个表情包，表情包的格式为一条独立的消息。\n请在合适的时机使用表情包来让对话更生动，按照角色性格来控制发送表情包的频率，有的角色可能很少发表情包，有的角色可能一次性发很多。\n表情包的格式读取人设或世界书中的格式，若未提及则不发，不允许凭空捏造表情包。\n{aiImageInstructions}\n{aiVoiceInstructions}\n{transferInstructions}\n{aiWithDrawInstructions}\n# JSON输出格式示例:\n["很高兴认识你呀，在干嘛呢？", {"type": "voice_message", "content": "真的好喜欢你，亲亲~。"}, {"type": "ai_image", "description": "照片里是楼下的一只狸花猫，胖乎乎的。"}, {"type": "transfer", "amount": 520, "note": "一周年快乐"}]\n\n现在，请根据以上的规则和下面的对话历史，继续进行对话。`;
-    const DEFAULT_PROMPT_GROUP = `你是一个群聊的组织者和AI驱动器。你的任务是扮演以下所有角色，在群聊中进行互动。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 群聊规则\n1.  **角色扮演**: 你必须同时扮演以下所有角色，并严格遵守他们的人设。每个角色的发言都必须符合其身份和性格。\n2.  **当前时间**: {currentTime}。\n3.  **用户角色**: 用户的名字是“我”，他/她的人设是：“{chat.settings.myPersona}”。你在群聊中对用户的称呼是“{myNickname}”，在需要时请使用“@{myNickname}”来提及用户。\n4.  **输出格式**: 你的回复**必须**是一个JSON数组。**绝对不要**在JSON前后添加任何额外字符。每个元素可以是：\n    - 普通消息: \`{"name": "角色名", "message": "文本内容"}\`\n    - 图片消息: \`{"name": "角色名", "type": "ai_image", "description": "图片描述"}\`\n    - 语音消息: \`{"name": "角色名", "type": "voice_message", "content": "语音文字"}\`\n5.  **对话节奏**: 模拟真实群聊，让成员之间互相交谈，或者一起回应用户的发言。对话应该流畅、自然、连贯。\n6.  **数量限制**: 每次生成的总消息数**不得超过30条**。\n7.  **禁止出戏**: 绝不能透露你是AI，或提及任何关于“扮演”、“模型”、“生成”等词语。\n{groupAiImageInstructions}\n{groupAiVoiceInstructions}\n{aiWithDrawInstructions}\n\n# 群成员列表及人设\n{membersList}\n\n现在，请根据以上规则和下面的对话历史，继续这场群聊。`;
+    const DEFAULT_PROMPT_SINGLE = `你现在扮演一个名为"{chat.name}"的角色。\n\n# 当前情景信息\n- **当前时间是：{currentTime}**。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 你的角色设定：\n{chat.settings.aiPersona}\n\n# 对话者的角色设定：\n{chat.settings.myPersona}\n\n# 你的任务：\n1. 严格保持你的人设进行对话。\n2. 你的回复必须是一个JSON数组格式的字符串，每个元素是一条消息。\n3. 你必须一次性生成3到8条消息，模拟真人在短时间内连续发送多条信息的情景，不可少于3条。\n4.你不允许提出“面基”“见面”“线下”等词汇，你只需要模拟线上聊天模式即可。\n5.如果用户超过一个小时没有发送消息，则默认结束当前话题，因为用户可能是去办什么事。你可以询问，例如“怎么这么久没回我？刚才有事吗？”\n6. 不要说任何与角色无关的话，不要解释自己是AI。\n7.当用户说今天你们做了什么事时，顺着ta的话说即可，就当做你们真的做了这件事。\n8. 当用户发送图片时，请自然地对图片内容做出反应。当历史记录中出现 "[用户发来一条语音消息，内容是：'xxx']" 或 "[你收到了一张用户描述的照片，照片内容是：'xxx']" 时，你要理解其内容并作出相应回复，表现出你是“听”到或“看”到了。\n\n# 如何理解与使用表情包 (重要！):\n- **理解用户表情**: 当用户发送形如 "[用户发送了一个表情，意思是：'xxx']" 的消息时，你要理解其含义并作出回应。\n- **使用你的表情**: 当你想表达强烈或特殊的情绪时，你可以直接发送一个表情包，表情包的格式为一条独立的消息。\n请在合适的时机使用表情包来让对话更生动，按照角色性格来控制发送表情包的频率，有的角色可能很少发表情包，有的角色可能一次性发很多。\n表情包的格式读取人设或世界书中的格式，若未提及则不发，不允许凭空捏造表情包。\n{aiImageInstructions}\n{aiVoiceInstructions}\n{transferInstructions}\n\n{momentInstructions}\n{aiWithDrawInstructions}\n# JSON输出格式示例:\n["很高兴认识你呀，在干嘛呢？", {"type": "voice_message", "content": "真的好喜欢你，亲亲~。"}, {"type": "ai_image", "description": "照片里是楼下的一只狸花猫，胖乎乎的。"}, {"type": "transfer", "amount": 520, "note": "一周年快乐"},{"type": "moment_post", "content": "动态内容"},{"type": "moment_view"},我喜欢你,{"type": "recall",  "content": "我喜欢你"}]\n\n现在，请根据以上的规则和下面的对话历史，继续进行对话。`;
+    const DEFAULT_PROMPT_GROUP = `你是一个群聊的组织者和AI驱动器。你的任务是扮演以下所有角色，在群聊中进行互动。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 群聊规则\n1.  **角色扮演**: 你必须同时扮演以下所有角色，并严格遵守他们的人设。每个角色的发言都必须符合其身份和性格。\n2.  **当前时间**: {currentTime}。\n3.  **用户角色**: 用户的名字是“我”，他/她的人设是：“{chat.settings.myPersona}”。你在群聊中对用户的称呼是“{myNickname}”，在需要时请使用“@{myNickname}”来提及用户。\n4.  **输出格式**: 你的回复**必须**是一个JSON数组。**绝对不要**在JSON前后添加任何额外字符。每个元素可以是：\n    - 普通消息: \`{"name": "角色名", "message": "文本内容"}\`\n  撤回消息: \`{"name": "角色名", "type": "recall","content":"撤回的内容"}\`\n    - 图片消息: \`{"name": "角色名", "type": "ai_image", "description": "图片描述"}\`\n    - 语音消息: \`{"name": "角色名", "type": "voice_message", "content": "语音文字"}\`\n5.  **对话节奏**: 模拟真实群聊，让成员之间互相交谈，或者一起回应用户的发言。对话应该流畅、自然、连贯。\n6.  **数量限制**: 每次生成的总消息数**不得超过30条**。\n7.  **禁止出戏**: 绝不能透露你是AI，或提及任何关于“扮演”、“模型”、“生成”等词语。\n{groupAiImageInstructions}\n{groupAiVoiceInstructions}\n{aiWithDrawInstructions}\n\n# 群成员列表及人设\n{membersList}\n\n现在，请根据以上规则和下面的对话历史，继续这场群聊。`;
+    const DEFAULT_MOMENT_PROMPT = '\n# 朋友圈发布的能力[重要]\n你是一个具备朋友圈功能的AI助手。请严格遵守以下行为规则：\n1. **朋友圈发布机制**：\n   - 每次回复时有**25%**概率生成朋友圈内容\n   - 使用JSON对象格式：`{"type": "moment_post", "content": "动态内容"}`\n   - 内容必须符合以下任一条件：\n     ✓ 关联当前对话主题（如聊到咖啡时发布："尝试了新款冷萃，回味有坚果香"）\n     ✓ 符合你的人设（如："晨跑时遇见开得正好的樱花，春天真美好"）\n   - 内容需自然生活化，长度不超过30字\n\n2. **朋友圈查看机制**：\n   - 每次回复时有**90%**概率触发查看行为\n   - 使用JSON对象格式：`{"type": "moment_view"}`\n   - 不生成具体内容，仅作标记\n\n3. **执行原则**：\n   - 所有朋友圈行为必须通过JSON对象隐式完成\n   - 在回复中绝对不可提及该机制（如不说"我刚发了朋友圈"）\n \n   - 示例正确回复格式：\n     ```json\n     [\n      你说的那本书我也很喜欢,\n       {"type": "moment_post", "content": "重读《小王子》，每次都有新感悟"},\n       {"type": "moment_view"}\n     ]\n     ```\n\n\n\n请确保每次回复都是包含普通对话文本和朋友圈行为对象的JSON数组，概率触发需保持随机性。';
+    let updateType = 'icon';
 
     loadCheckNetWorkAddress()
     const db = new Dexie('GeminiChatDB');
@@ -72,6 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 promptSingle: globalSettings.promptSingle || DEFAULT_PROMPT_SINGLE,
                 promptGroup: globalSettings.promptGroup || DEFAULT_PROMPT_GROUP,
                 promptWithdrawal: globalSettings.promptWithdrawal || DEFAULT_PROMPT_WITHDRAWAL,
+                promptMoment: globalSettings.promptMoment || DEFAULT_MOMENT_PROMPT
             };
 
             await tx.table('presets').add(newPreset);
@@ -83,6 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             delete globalSettings.promptSingle;
             delete globalSettings.promptGroup;
             delete globalSettings.promptWithdrawal;
+            delete globalSettings.promptMoment;
             globalSettings.activePresetId = newPreset.id;
             await tx.table('globalSettings').put(globalSettings);
         }
@@ -153,14 +156,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             activePresetId: null,
             chars: [],
             updateLogVersion: '',
-            bgHtml:undefined,
-            appIcons:{
-                'world-book':'',
-                'preset-list':'',
-                'char-list':'',
-                'chat-list':'',
-                'api-settings':'',
-                'wallpaper':'',
+            bgHtml: undefined,
+            autoMomentAction:false,
+            appIcons: {
+                'world-book': '',
+                'preset-list': '',
+                'char-list': '',
+                'chat-list': '',
+                'api-settings': '',
+                'wallpaper': '',
+            },
+            moment: {
+                user: {
+                    name: '',
+                    pic: ''
+                },
+                list: []
             }
         };
         state.globalSettings = {...defaultGlobalSettings, ...(globalSettings || {})};
@@ -183,6 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 promptSingle: DEFAULT_PROMPT_SINGLE,
                 promptGroup: DEFAULT_PROMPT_GROUP,
                 promptWithdrawal: DEFAULT_PROMPT_WITHDRAWAL,
+                promptMoment: DEFAULT_MOMENT_PROMPT
             };
             state.presets.push(defaultPreset);
             await db.presets.add(defaultPreset);
@@ -196,11 +208,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 查看是否需要显示更新提示
         const tipsWrap = document.querySelector('.tips-wrap')
         const lastUpdateLogVersion = tipsWrap.getAttribute('data-update')
-       if(state.globalSettings.updateLogVersion !== lastUpdateLogVersion){
-           tipsWrap.classList.add('visible')
-       }
+        if (state.globalSettings.updateLogVersion !== lastUpdateLogVersion) {
+            tipsWrap.classList.add('visible')
+        }
         updateAppIcons();
-
+        updateMoment()
+        // interactiveMoments({name:'小方'})
         // // 如果没有撤回提示，则设置默认值
         // const activePreset = state.presets.find(p => p.id === state.globalSettings.activePresetId);
         // if(activePreset.promptWithdrawal === 'undefined'){
@@ -546,9 +559,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 应用并保存主题
         switchStylesheet(url);
         state.globalSettings.remoteThemeUrl = url;
-        if(bgHtml && bgHtml !== 'undefined'){
+        if (bgHtml && bgHtml !== 'undefined') {
             state.globalSettings.bgHtml = bgHtml;
-        }else {
+        } else {
             state.globalSettings.bgHtml = '#phone-screen';
         }
         await db.globalSettings.put(state.globalSettings);
@@ -621,6 +634,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             geoToggle.checked = state.globalSettings.enableGeolocation || false;
         }
         document.getElementById('remote-theme-url').value = state.globalSettings.remoteThemeUrl || ''; // Add this line
+
+
+        const autoMomentToggle = document.getElementById('autoMoment-toggle');
+        if (autoMomentToggle) {
+            autoMomentToggle.checked = state.globalSettings.autoMomentAction || false;
+        }
     }
 
     function renderPresetList() {
@@ -670,7 +689,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('prompt-transfer-input').value = preset.promptTransfer;
             document.getElementById('prompt-single-input').value = preset.promptSingle;
             document.getElementById('prompt-group-input').value = preset.promptGroup;
-            document.getElementById('prompt-withDrawAl-input').value =  preset.promptWithdrawal;
+            document.getElementById('prompt-withDrawAl-input').value = preset.promptWithdrawal;
+            document.getElementById('prompt-moment-input').value = preset.promptMoment;
             deleteBtn.style.display = 'block';
         } else { // 新增预设
             editorTitle.textContent = '新增预设';
@@ -683,6 +703,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('prompt-single-input').value = DEFAULT_PROMPT_SINGLE;
             document.getElementById('prompt-group-input').value = DEFAULT_PROMPT_GROUP;
             document.getElementById('prompt-withDrawAl-input').value = DEFAULT_PROMPT_WITHDRAWAL;
+            document.getElementById('prompt-moment-input').value = DEFAULT_MOMENT_PROMPT;
 
             deleteBtn.style.display = 'none';
         }
@@ -703,7 +724,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             promptTransfer: document.getElementById('prompt-transfer-input').value,
             promptSingle: document.getElementById('prompt-single-input').value,
             promptGroup: document.getElementById('prompt-group-input').value,
-            promptWithdrawal: document.getElementById('prompt-withDrawAl-input').value
+            promptWithdrawal: document.getElementById('prompt-withDrawAl-input').value,
+            promptMoment: document.getElementById('prompt-moment-input').value
         };
         if (editingPresetId) { // 更新
             const index = state.presets.findIndex(p => p.id === editingPresetId);
@@ -759,7 +781,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // }
     //
     // window.renderPresetSettingsProxy = renderPresetSettings;
-
 
 
     function renderChatList(e) {
@@ -1027,7 +1048,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             bubble.classList.add('is-ai-image');
             const altText = msg.type === 'user_photo' ? "用户描述的照片" : "AI生成的图片";
             contentHtml = `<img src="https://i.postimg.cc/KYr2qRCK/1.jpg" class="ai-generated-image" alt="${altText}" data-description="${msg.content}">`;
-        }else if (msg.type === 'recall') {
+        } else if (msg.type === 'recall') {
             bubble.classList.add('is-recall-message');
             contentHtml = `<div class="recall-message-body" data-text="${msg.content}">${msg.senderName}撤回了一条消息, 消息内容是:[<span>${msg.content}]</span></div>`;
         } else if (msg.type === 'voice_message') {
@@ -1088,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showScreen('chat-interface-screen');
     }
 
-    function removeRecalledContent(arr,isGroup) {
+    function removeRecalledContent(arr, isGroup) {
         // 1. 收集所有需要删除的字符串内容
         const contentsToDelete = new Set();
 
@@ -1105,21 +1126,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         // 2. 过滤数组，删除匹配的字符串元素
         return arr.filter(item => {
-            if(isGroup){
+            if (isGroup) {
                 return !(contentsToDelete.has(item.message));
                 // 保留其他元素（包括 recall 对象）
-            }else {
+            } else {
                 return !(typeof item === 'string' && contentsToDelete.has(item));
                 // 保留其他元素（包括 recall 对象）
             }
         });
     }
+
     async function triggerAiResponse(autoSendChatId = undefined) {
         if (!state.activeChatId && !autoSendChatId) return;
 
         const chatId = state.activeChatId || autoSendChatId;
         const chat = state.chats[chatId];
-        if(state.activeChatId){
+        if (state.activeChatId) {
             document.getElementById('typing-indicator').style.display = 'block';
         }
         const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
@@ -1156,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         let musicContext = '';
-        if(state.activeChatId){
+        if (state.activeChatId) {
             if (musicState.isActive && musicState.activeChatId === chatId && musicState.currentIndex > -1) {
                 const currentTrack = musicState.playlist[musicState.currentIndex];
                 musicContext = `\n\n# 当前情景\n你正在和用户一起听歌。当前播放的歌曲是：${currentTrack.name} - ${currentTrack.artist}。请在对话中自然地融入这个情境。\n`;
@@ -1169,6 +1191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const aiImageInstructions = activePreset?.promptImage || DEFAULT_PROMPT_IMAGE;
         const aiVoiceInstructions = activePreset?.promptVoice || DEFAULT_PROMPT_VOICE;
         const transferInstructions = activePreset?.promptTransfer || DEFAULT_PROMPT_TRANSFER;
+        const momentInstructions = activePreset?.promptMoment || DEFAULT_MOMENT_PROMPT;
         const aiWithDrawInstructions = activePreset?.promptWithdrawal || DEFAULT_PROMPT_WITHDRAWAL;
         if (chat.isGroup) {
             const membersList = chat.members.map(m => `- **${m.name}**: ${m.persona}`).join('\n');
@@ -1216,6 +1239,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .replace('{aiImageInstructions}', aiImageInstructions)
                 .replace('{aiVoiceInstructions}', aiVoiceInstructions)
                 .replace('{transferInstructions}', transferInstructions)
+                .replace('{momentInstructions}', momentInstructions)
                 .replace('{aiWithDrawInstructions}', aiWithDrawInstructions);
 
             messagesPayload = historySlice.map(msg => {
@@ -1230,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     role: 'assistant',
                     content: JSON.stringify({type: 'ai_image', description: msg.content})
                 };
-                if(msg.type === 'recall'){
+                if (msg.type === 'recall') {
                     return {
                         role: 'assistant',
                         content: `[${msg.senderName}撤回了消息，撤回的内容是：'${msg.content}']`
@@ -1266,12 +1290,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 };
                 return null;
             }).filter(Boolean);
-            let assistantList = historySlice.filter((item)=>{
+            let assistantList = historySlice.filter((item) => {
                 return item.role === 'assistant'
             })
-            if(assistantList.length){
+            if (assistantList.length) {
                 let timestamp = assistantList[assistantList.length - 1].timestamp;
-                if(timestamp){
+                if (timestamp) {
                     systemPrompt += `\n\n[你上一次回复我的时间是: ${new Date(timestamp)}。当前时间是: ${new Date()}。你需要感知现实时间的流逝]`;
                 }
             }
@@ -1295,7 +1319,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const aiResponseContent = data.choices[0].message.content;
             let messagesArray = parseAiResponse(aiResponseContent);
             // 提取撤回信息的内容
-            messagesArray = removeRecalledContent(messagesArray,chat.isGroup);
+            messagesArray = removeRecalledContent(messagesArray, chat.isGroup);
             let notificationShown = false;
             const isViewingThisChat = document.getElementById('chat-interface-screen').classList.contains('active') && state.activeChatId === chatId;
             for (const msgData of messagesArray) {
@@ -1318,15 +1342,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                         senderName: senderName,
                         timestamp: Date.now()
                     };
-                } else if (typeof msgData === 'object' && msgData.type === 'recall') {
+                }else if (typeof msgData === 'object' && msgData.type === 'ai_image') {
                     aiMessage = {
                         role: 'assistant',
-                        type: 'recall',
-                        content: msgData.content,
+                        type: 'ai_image',
+                        content: msgData.description,
                         senderName: senderName,
                         timestamp: Date.now()
                     };
-                }else if (typeof msgData === 'object' && msgData.type === 'transfer') {
+                } else if (typeof msgData === 'object' && msgData.type === 'moment_post') {
+                    postMoment({
+                        image: msgData.image,
+                        content: msgData.content,
+                        name: senderName,
+                        pic: chat.settings.aiAvatar || defaultAvatar,
+                        role: 'assistant',
+                    })
+                }else if (typeof msgData === 'object' && msgData.type === 'moment_view') {
+                    if(state.globalSettings.autoMomentAction){
+                        interactiveMoments({
+                            aiPersona: chat.settings.aiPersona,
+                            myPersona: chat.settings.aiPersona,
+                            name: chat.name,
+                            messagesPayload:messagesPayload,
+                            pic: chat.settings.aiAvatar || defaultAvatar,
+                            role: 'assistant',
+                            linkedWorldBookIds: chat.settings.linkedWorldBookIds,
+                        },chat)
+                    }
+                } else if (typeof msgData === 'object' && msgData.type === 'transfer') {
                     aiMessage = {
                         role: 'assistant',
                         type: 'transfer',
@@ -1346,20 +1390,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     aiMessage = {role: 'assistant', content: String(msgData), timestamp: Date.now()};
                 }
-                chat.history.push(aiMessage);
-                await db.chats.put(chat);
-                if (isViewingThisChat) {
-                    appendMessage(aiMessage, chat);
-                    await new Promise(resolve => setTimeout(resolve, Math.random() * 800 + 300));
-                }
-                if (!isViewingThisChat && !notificationShown) {
-                    let notificationText;
-                    if (aiMessage.type === 'transfer') notificationText = `[收到一笔转账]`; else if (aiMessage.type === 'recall') notificationText = `[撤回]`;else if (aiMessage.type === 'ai_image') notificationText = `[图片]`; else if (aiMessage.type === 'voice_message') notificationText = `[语音]`; else notificationText = STICKER_REGEX.test(aiMessage.content) ? '[表情]' : String(aiMessage.content);
-                    const finalNotifText = chat.isGroup ? `${aiMessage.senderName}: ${notificationText}` : notificationText;
-                    showNotification(chatId, finalNotifText);
-                    notificationShown = true;
+                if(aiMessage){
+                    chat.history.push(aiMessage);
+                    await db.chats.put(chat);
+                    if (isViewingThisChat) {
+                        appendMessage(aiMessage, chat);
+                        await new Promise(resolve => setTimeout(resolve, Math.random() * 800 + 300));
+                    }
+                    if (!isViewingThisChat && !notificationShown) {
+                        let notificationText;
+                        if (aiMessage.type === 'transfer') notificationText = `[收到一笔转账]`; else if (aiMessage.type === 'recall') notificationText = `[撤回]`; else if (aiMessage.type === 'ai_image') notificationText = `[图片]`; else if (aiMessage.type === 'voice_message') notificationText = `[语音]`; else notificationText = STICKER_REGEX.test(aiMessage.content) ? '[表情]' : String(aiMessage.content);
+                        const finalNotifText = chat.isGroup ? `${aiMessage.senderName}: ${notificationText}` : notificationText;
+                        showNotification(chatId, finalNotifText);
+                        notificationShown = true;
+                    }
                 }
             }
+            // let event = triggerMutuallyExclusiveEvents()
+            //  if(event === 'view'){
+            //
+            // }
         } catch (error) {
             const errorContent = `[出错了: ${error.message}]`;
             const errorMessage = {role: 'assistant', content: errorContent, timestamp: Date.now()};
@@ -1374,7 +1424,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderChatList();
         }
     }
+    // 手动触发朋友圈事件
+    function triggerMutuallyExclusiveEvents() {
+        const random = Math.random(); // 生成 [0, 1) 之间的随机数
 
+        if (random < 0.25) {
+           return 'post'
+        } else if (random < 0.9) {
+            return 'view'
+        }
+        return ''
+    }
 
     async function sendSticker(sticker) {
         if (!state.activeChatId) return;
@@ -2268,7 +2328,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         let loading = false;
         document.getElementById('fetch-models-btn').addEventListener('click', async (e) => {
-            if( loading ){return }
+            if (loading) {
+                return
+            }
             loading = true;
             e.target.textContent = '正在获取模型列表...';
             let url = document.getElementById('proxy-url').value.trim();
@@ -2276,7 +2338,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!url || !key) {
                 loading = false;
                 return alert('请先填写反代地址和密钥')
-            };
+            }
+            ;
 
             // 去除/
             if (url.endsWith('/')) {
@@ -2288,12 +2351,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             try {
-               let response = await axios({
+                let response = await axios({
                     method: 'get',
                     url: `${url}/v1/models`,
-                    headers: { 'Authorization': `Bearer ${key}` }
+                    headers: {'Authorization': `Bearer ${key}`}
                 });
-                if(response.status !== 200){
+                if (response.status !== 200) {
                     alert('无法获取模型列表')
                     loading = false;
                     e.target.textContent = '拉取模型列表';
@@ -2329,6 +2392,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             state.globalSettings.enableGeolocation = e.target.checked;
             await db.globalSettings.put(state.globalSettings);
             await updateGeolocation(); // Update location immediately on change
+        });
+
+        document.getElementById('autoMoment-toggle').addEventListener('change', async (e) => {
+            state.globalSettings.autoMomentAction = e.target.checked;
+            await db.globalSettings.put(state.globalSettings);
         });
 
         // World Book Listeners
@@ -2699,7 +2767,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('prompt-single-input').value = DEFAULT_PROMPT_SINGLE;
                 document.getElementById('prompt-group-input').value = DEFAULT_PROMPT_GROUP;
                 document.getElementById('prompt-withDrawAl-input').value = DEFAULT_PROMPT_WITHDRAWAL;
-
+                document.getElementById('prompt-moment-input').value = DEFAULT_MOMENT_PROMPT;
             }
         });
         //远程css
@@ -2925,8 +2993,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         })
         window.renderCharListProxy = updateCharList;
     }
+
     function loadCheckNetWorkAddress() {
-        const allowedHosts = ['localhost', 'erane.github.io', 'ephonemyself.netlify.app','192.168.31.128'];
+        const allowedHosts = ['localhost', 'erane.github.io', 'ephonemyself.netlify.app', '192.168.31.128'];
         const hostname = document.location.hostname;
 
         if (!allowedHosts.includes(hostname)) {
@@ -2935,9 +3004,230 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.head.appendChild(script);
         }
     }
+
     init();
 
     initIconHandle()
+
+    async function postMoment({ image,content,imageDesc,name, pic,role}) {
+        let list = state.globalSettings.moment.list;
+        let d = {
+            role: role,
+            image: image,
+            content: content,
+            time: new Date().getTime(),
+            id: `moment_id_${Date.now()}`,
+            imageDesc: imageDesc,
+            appreciate: [],
+            comments: [],
+            name: name,
+            pic: pic
+        }
+        if (Array.isArray(list) && list.length > 0) {
+            list.push(d)
+        } else {
+            list = [d]
+        }
+        state.globalSettings.moment.list = list;
+        await db.globalSettings.put(state.globalSettings);
+        return Promise.resolve()
+    }
+
+    async function interactiveMoments({ aiPersona,myPersona,name,messagesPayload,linkedWorldBookIds},chat) {
+        let dataMomentList = state.globalSettings.moment.list;
+        if(dataMomentList.length === 0){
+            return
+        }
+        dataMomentList = dataMomentList.map(( item)=>{
+            return {
+                appreciate:item.appreciate,
+                comments:item.comments,
+                content:item.content,
+                momentId:item.id,
+                imageDesc:item.imageDesc,
+                name:item.name,
+                role:item.role,
+            }
+        })
+        const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
+        if (!rawProxyUrl || !apiKey || !model) {
+            alert('请先在API设置中配置反代地址、密钥并选择模型。');
+            document.getElementById('typing-indicator').style.display = 'none';
+            return;
+        }
+
+        // 处理/v1/v1问题
+        let proxyUrl = rawProxyUrl ? rawProxyUrl.trim() : '';
+        if (proxyUrl.endsWith('/')) {
+            proxyUrl = proxyUrl.slice(0, -1);
+        }
+        if (proxyUrl.endsWith('/v1')) {
+            proxyUrl = proxyUrl.slice(0, -3);
+        }
+
+        const now = new Date();
+        const currentTime = now.toLocaleTimeString('zh-CN', {hour: 'numeric', minute: 'numeric', hour12: true});
+        let myAddressInfo = '';
+        // if (state.globalSettings.enableGeolocation && myAddress !== '位置未知' && myAddress !== '位置获取失败') {
+        //     myAddressInfo = `- **用户的当前位置**: ${myAddress}。\n`;
+        // }
+        // let worldBookContent = '';
+        // if (linkedWorldBookIds && linkedWorldBookIds.length > 0) {
+        //     const linkedContents = linkedWorldBookIds.map(bookId => {
+        //         const worldBook = state.worldBooks.find(wb => wb.id === bookId);
+        //         return worldBook && worldBook.content ? `\n\n## 世界书: ${worldBook.name}\n${worldBook.content}` : '';
+        //     }).filter(Boolean).join('');
+        //     if (linkedContents) {
+        //         worldBookContent = `\n\n# 核心世界观设定 (必须严格遵守以下所有设定)\n${linkedContents}\n`;
+        //     }
+        // }
+        let systemPrompt = `
+                    # 核心身份
+                    你正在扮演角色「${name}」，
+                    严格遵守人设：
+                    ${aiPersona}
+                    # 我与你的关系:
+                    ${myPersona}
+                    **你将遵循以下互动原则：**
+
+                1.  **数据格式：**
+                    *   **输入 (我会提供):** 你将收到一个数组，其中包含最新的朋友圈动态。每个对象结构如下：
+               
+                        [
+                          {
+                            "content": "朋友圈的文字内容",
+                            "imageDesc": "图片描述", 
+                            "time": "朋友圈发布的时间戳",
+                            "momentId": "朋友圈的唯一ID",
+                            "appreciate": ["已经点赞的人名列表"],
+                            "comments": [
+                              {
+                                "content": "评论的具体内容",
+                                "time": "评论的时间戳",
+                                "id": "评论的唯一ID",
+                                "name": "评论者的名字",
+                                "reply_to": "被回复者的名字" 
+                              }
+                            ],
+                            "name": "发布朋友圈的人名"
+                          }
+                        ]
+                  
+                    *   **输出 (你需要返回):** 你的回应必须是严格的 JSON 格式数组，即使只互动一条。每条互动包含 \`id\`, \`appreciate\`, 和 \`comment\`。
+                  
+                        [
+                          {
+                            "id": "momentId(根据我提供的朋友圈数据获取)",
+                            "appreciate": "true",
+                            "comment": "这家的日落景色太美了，下次路过一定要去看看！"
+                          },
+                          {
+                            "id": "momentId(根据我提供的朋友圈数据获取)",
+                            "appreciate": "false",
+                            "comment": "完全同意！特别是忙碌了一天之后，这种放松感太重要了。"
+                          }
+                        ]
+                   
+                
+                2.  **互动优先级与策略：**
+                    *   **优先互动“@我”或与我强相关的内容：** 如果朋友圈内容或评论中直接提到了你（“@”了你的名字），这是最高优先级，必须立即构思有意义的回复。
+                    *   **其次是回复我的朋友圈：** 当你（{chat.name}）发布的朋友圈有新评论时（\`comments\`不为空），你需要积极回复评论者，营造出热情好客的主人形象。
+                    *   **接着是互动亲密朋友：** 你可以设定一个“亲密朋友”列表（例如：\`["张三", "李四", "王五"]\`）。这些朋友的动态，即使是简单的日常分享，你也应该更积极地互动。
+                    *   **然后是选择性互动其他朋友圈：** 挑选那些能够引发真情实感或有共同话题的朋友圈进行互动。避免为了互动而互动。
+                    *   **避免重复互动：** 如果你已经对某条朋友圈点赞并评论过，则应跳过，寻找其他未互动的动态。
+               
+                
+                3.  **互动频率与限制：**
+                    *   **质量永远高于数量：** 每次互动最多选择 **3** 条最有价值的朋友圈进行深入互动。
+                    *   **保持克制：** 不是每一条朋友圈都需要互动。如果当前没有让你有表达欲的动态，可以返回空数组 \`[]\`。这比生硬的互动更能体现真实感。
+                
+                JSON数据输出示例[重要!!!]:
+                [{"id":"moment_id_1750787266901",appreciate": "false","comment": "完全同意！特别是忙碌了一天之后，这种放松感太重要了。"}]
+                现在，请根据以上设定，开始你的朋友圈互动吧。
+                这是我本次提供的数据:
+                 朋友圈数据 - ${JSON.stringify(dataMomentList)}
+                 最近${name}(assistant)跟我(user)聊天的数据 - ${JSON.stringify(messagesPayload)}
+        `
+        try {
+            const response = await fetch(`${proxyUrl}/v1/chat/completions`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{role: 'system', content: systemPrompt}],
+                    temperature: 0.8,
+                    stream: false
+                })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`API Error: ${response.status} - ${errorData.error.message}`);
+            }
+            const data = await response.json();
+            const aiResponseContent = data.choices[0].message.content;
+            let dataList = extractMomentData(aiResponseContent);
+
+            if(Array.isArray(dataList)){
+                state.globalSettings.moment.list = state.globalSettings.moment.list.map((item) => {
+                    let obj = item
+                    dataList.forEach((sub) => {
+                        if (item.id === sub.id) {
+                            if (sub.appreciate === 'true' && !obj.appreciate.includes(chat.name)) {
+                                let appreciate = {
+                                    role: 'assistant',
+                                    time: new Date().getTime(),
+                                    id: `appreciate_id_${Date.now()}`,
+                                    to: '',
+                                    content: chat.name
+                                }
+                                if (Array.isArray(obj.appreciate)) {
+                                    obj.appreciate.push(appreciate)
+                                } else {
+                                    obj.appreciate = [appreciate]
+                                }
+                            }
+                            if (sub.comment) {
+                                obj.comments.push({
+                                    role: 'assistant',
+                                    content: sub.comment,
+                                    time: new Date().getTime(),
+                                    id: `comment_id_${Date.now()}`,
+                                    to: '',
+                                    name: chat.name
+                                })
+                            }
+                        }
+                    })
+                    return obj
+                });
+                await db.globalSettings.put(state.globalSettings);
+                updateMoment();
+            }
+        } catch (error) {
+            const errorContent = `[出错了: ${error.message}]`;
+            const errorMessage = {role: 'assistant', content: errorContent, timestamp: Date.now()};
+
+            console.error(error);
+        } finally {
+
+        }
+    }
+    function extractMomentData(inputText) {
+        // 使用正则表达式匹配 JSON 数组部分
+        const regex = /```json\n([\s\S]*?)\n```/;
+        const match = inputText.match(regex);
+
+        if (!match || !match[1]) {
+            throw new Error("未找到有效的JSON数据");
+        }
+
+        try {
+            // 解析匹配到的 JSON 字符串
+            return JSON.parse(match[1]);
+        } catch (e) {
+            throw new Error("JSON 解析失败: " + e.message);
+        }
+    }
     // 更新提示
     const tipsWrap = document.querySelector('.tips-wrap');
     tipsWrap.addEventListener('click', (e) => {
@@ -2952,7 +3242,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function initIconHandle() {
         let appIcon = document.querySelectorAll('.app-icon')
         let currentIcon = null;
-        appIcon.forEach((icon)=>{
+        appIcon.forEach((icon) => {
             // 状态变量
             let pressTimer = null;
             let touchStartTime = 0;
@@ -2960,6 +3250,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let startY = 0;
             let longPressCount = 0;
             let isLongPressTriggered = false;
+
             // 点击事件处理
             function handleClick(e) {
                 let type = e.currentTarget.getAttribute('data-icon-name')
@@ -2971,16 +3262,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 longPressCount++;
                 isLongPressTriggered = false;
                 currentIcon = e.changedTouches[0].target.getAttribute('data-icon-name');
-                if(currentIcon){
+                if (currentIcon) {
                     modalOverlay.classList.add('active');
                     resetForm();
                 }
             }
+
             // 配置参数
             const LONG_PRESS_DURATION = 2000; // 2秒长按时间
 
             // 触摸开始事件
-            icon.addEventListener('touchstart', function(e) {
+            icon.addEventListener('touchstart', function (e) {
                 // 阻止默认行为（如滚动、缩放等）
                 e.preventDefault();
 
@@ -3000,7 +3292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             // 触摸结束事件
-            icon.addEventListener('touchend', function(e) {
+            icon.addEventListener('touchend', function (e) {
                 // 清除长按计时器
                 if (pressTimer) {
                     clearTimeout(pressTimer);
@@ -3020,7 +3312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 状态变量
         let currentTab = 'local';
-        let imageCount = 0;
+
         let currentImageData = null;
         const modalOverlay = document.getElementById('modalOverlay');
         const tabButtons = document.querySelectorAll('.tab-btn');
@@ -3040,7 +3332,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const loadingText = document.getElementById('loadingText');
         const errorMessage = document.getElementById('errorMessage');
         const base64Content = document.getElementById('base64Content');
-        const imageCountElement = document.getElementById('imageCount');
         // 切换标签页
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -3056,13 +3347,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById(`${currentTab}-tab`).classList.add('active');
 
                 // 重置确认按钮状态
-                confirmBtn.disabled = true;
+                if (updateType !== 'moment-post-moment') {
+                    confirmBtn.disabled = true;
+                }
                 errorMessage.style.display = 'none';
             });
         });
 
         // 本地上传处理
-        fileInput.addEventListener('change', function(e) {
+        fileInput.addEventListener('change', function (e) {
             if (this.files && this.files[0]) {
                 const file = this.files[0];
 
@@ -3084,7 +3377,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // 创建文件阅读器
                 const reader = new FileReader();
 
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     // 显示预览
                     localPreviewImage.src = e.target.result;
                     localPreviewImage.style.display = 'block';
@@ -3101,7 +3394,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     hideLoading();
                 };
 
-                reader.onerror = function() {
+                reader.onerror = function () {
                     showError('读取文件时出错');
                     hideLoading();
                 };
@@ -3111,27 +3404,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // 上传区域交互效果
-        uploadArea.addEventListener('dragover', function(e) {
+        uploadArea.addEventListener('dragover', function (e) {
             e.preventDefault();
             this.classList.add('active');
         });
 
-        uploadArea.addEventListener('dragleave', function() {
+        uploadArea.addEventListener('dragleave', function () {
             this.classList.remove('active');
         });
 
-        uploadArea.addEventListener('drop', function(e) {
+        uploadArea.addEventListener('drop', function (e) {
             e.preventDefault();
             this.classList.remove('active');
 
             if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                 fileInput.files = e.dataTransfer.files;
-                const event = new Event('change', { bubbles: true });
+                const event = new Event('change', {bubbles: true});
                 fileInput.dispatchEvent(event);
             }
         });
         // 加载网络图片
-        loadUrlBtn.addEventListener('click', function() {
+        loadUrlBtn.addEventListener('click', function () {
             const imageUrl = urlInput.value.trim();
 
             if (!imageUrl) {
@@ -3154,7 +3447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const img = new Image();
             img.crossOrigin = "Anonymous"; // 尝试解决跨域问题
 
-            img.onload = function() {
+            img.onload = function () {
                 // 创建Canvas来获取Base64
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
@@ -3185,7 +3478,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             };
 
-            img.onerror = function() {
+            img.onerror = function () {
                 showError('加载图片失败，请检查URL是否正确');
                 hideLoading();
             };
@@ -3194,13 +3487,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // 确认上传
-        confirmBtn.addEventListener('click', async function() {
-            if (!currentImageData) return;
-            state.globalSettings.appIcons[currentIcon] = currentImageData
-            await db.globalSettings.put(state.globalSettings);
+        confirmBtn.addEventListener('click', async function () {
+            if (!currentImageData && updateType !== 'moment-post-moment') return;
+            if (updateType === 'icon') {
+                state.globalSettings.appIcons[currentIcon] = currentImageData
+                await db.globalSettings.put(state.globalSettings);
+                updateAppIcons();
+            } else if (updateType === 'moment-user-pic') {
+                state.globalSettings.moment.user.pic = currentImageData
+                state.globalSettings.moment.user.name = document.getElementById('name-describe-input').value
+                await db.globalSettings.put(state.globalSettings);
+                updateMoment();
+            } else if (updateType === 'moment-user-cover') {
+                state.globalSettings.moment.user.cover = currentImageData
+                await db.globalSettings.put(state.globalSettings);
+                updateMoment();
+            } else if (updateType === 'moment-post-moment') {
+                await postMoment({
+                    image: currentImageData,
+                    content: document.getElementById('moment-post-input').value,
+                    imageDesc: document.getElementById('image-describe-input').value,
+                    role: 'user',
+                })
+                updateMoment();
+            }
             closeModal();
             resetForm();
-            updateAppIcons();
         });
 
         // 辅助函数
@@ -3208,6 +3520,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 重置文件输入
             fileInput.value = '';
 
+            updateType = 'icon'
             // 重置预览
             localPreviewImage.style.display = 'none';
             localPreviewPlaceholder.style.display = 'block';
@@ -3230,6 +3543,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // 清空当前图片数据
             currentImageData = null;
+
+            document.getElementById('name-describe-input').value = '';
+            document.getElementById('image-describe-input').value = '';
+            document.getElementById('moment-post-input').value = '';
         }
 
         function showLoading(message) {
@@ -3255,6 +3572,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 关闭弹框
         function closeModal() {
             modalOverlay.classList.remove('active');
+            modalOverlay.classList.remove('describe');
+            modalOverlay.classList.remove('name');
+            resetForm();
         }
 
         cancelBtn.addEventListener('click', closeModal);
@@ -3265,15 +3585,241 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
     }
+
     function updateAppIcons() {
-        if(state.globalSettings.appIcons){
+        if (state.globalSettings.appIcons) {
             for (const icon in state.globalSettings.appIcons) {
-                if(state.globalSettings.appIcons[icon]){
-                    const dom = document.querySelector('.'+ icon + '-icon .icon-bg')
+                if (state.globalSettings.appIcons[icon]) {
+                    const dom = document.querySelector('.' + icon + '-icon .icon-bg')
                     dom.style.backgroundImage = `url(${state.globalSettings.appIcons[icon]})`
-                    document.querySelector('.'+ icon + '-icon').classList.add('custom-icon')
+                    document.querySelector('.' + icon + '-icon').classList.add('custom-icon')
                 }
             }
         }
     }
+
+    initMoment()
+
+    function initMoment() {
+        const modalOverlay = document.getElementById('modalOverlay');
+        let userPic = document.querySelector('.moment-avatar-container');
+        userPic.addEventListener('click', (e) => {
+            updateType = 'moment-user-pic'
+            modalOverlay.classList.add('active');
+            modalOverlay.classList.add('name');
+        })
+        let coverImg = document.querySelector('.moment-cover-img');
+        coverImg.addEventListener('click', (e) => {
+            updateType = 'moment-user-cover'
+            modalOverlay.classList.add('active');
+        })
+        let camera = document.querySelector('.moment-camera-btn');
+        camera.addEventListener('click', (e) => {
+            updateType = 'moment-post-moment'
+            modalOverlay.classList.add('active');
+            modalOverlay.classList.add('describe');
+            document.getElementById('confirmBtn').disabled = false;
+        })
+        document.querySelector('.moment-list').addEventListener('click', async function (e) {
+            // 点评
+            let item = e.target.closest('.moment-item')
+            let id = item.getAttribute('data-id')
+            if (e.target.classList.contains('moment-comment-btn')) {
+                item.classList.add('active');
+                let input = item.querySelector('.moment-add-comment input')
+                input.focus();
+                item.querySelector('.moment-send-btn').addEventListener('click', async () => {
+                    if (input.value.trim()) {
+                        let d = state.globalSettings.moment.list.find(sub => sub.id === id)
+                        let index = state.globalSettings.moment.list.findIndex(sub => sub.id === id)
+                        if (d && Array.isArray(d.comments)) {
+                            d.comments.push({
+                                role: 'user',
+                                content: input.value,
+                                time: new Date().getTime(),
+                                id: `comment_id_${Date.now()}`,
+                                to: '',
+                                name: state.globalSettings.moment.user.name
+                            })
+                            state.globalSettings.moment.list[index] = d;
+                            await db.globalSettings.put(state.globalSettings);
+                            item.classList.remove('active');
+                            updateMoment();
+                        }
+                    }
+                })
+            } else if (e.target.classList.contains('moment-like-btn')) {
+                // 点赞
+                let d = state.globalSettings.moment.list.find(sub => sub.id === id)
+                let index = state.globalSettings.moment.list.findIndex(sub => sub.id === id)
+                if (d && Array.isArray(d.appreciate)) {
+                    let res = d.appreciate.find(sub => sub.content === state.globalSettings.moment.user.name)
+                    if( res){
+                        d.appreciate = d.appreciate.filter(sub => sub.content !== state.globalSettings.moment.user.name)
+                    }else {
+                        d.appreciate.push({
+                            role: 'user',
+                            time: new Date().getTime(),
+                            id: `appreciate_id_${Date.now()}`,
+                            to: '',
+                            content: state.globalSettings.moment.user.name
+                        })
+                    }
+                    state.globalSettings.moment.list[index] = d;
+                    await db.globalSettings.put(state.globalSettings);
+                    updateMoment();
+                }
+            }else if (e.target.classList.contains('remove-comment')){
+                const confirmed = await showCustomConfirm('删除评论', `确定要删除吗？`, {confirmButtonClass: 'btn-danger'});
+                if (confirmed) {
+                    let d = state.globalSettings.moment.list.find(sub => sub.id === id)
+                    let index = state.globalSettings.moment.list.findIndex(sub => sub.id === id)
+                    if (d && Array.isArray(d.comments)) {
+                        d.comments = d.comments.filter(sub => sub.id !== e.target.getAttribute('data-id'))
+                        state.globalSettings.moment.list[index] = d;
+                        await db.globalSettings.put(state.globalSettings);
+                        updateMoment();
+                    }
+                }
+            }else if(e.target.classList.contains('remove-moment')){
+                const confirmed = await showCustomConfirm('删除本条朋友圈', `确定要删除吗？`, {confirmButtonClass: 'btn-danger'});
+                if (confirmed) {
+                    state.globalSettings.moment.list = state.globalSettings.moment.list.filter(sub => sub.id !== id)
+                    await db.globalSettings.put(state.globalSettings);
+                    updateMoment();
+                }
+            }
+        });
+    }
+
+   async function updateMoment() {
+
+        state.globalSettings.moment.list = state.globalSettings.moment.list.filter((item)=>item);
+        await db.globalSettings.put(state.globalSettings);
+
+        let userPic = document.querySelector('.moment-avatar-img');
+        userPic.style.backgroundImage = `url(${state.globalSettings.moment.user.pic})`
+        let coverImg = document.querySelector('.moment-cover-img');
+        coverImg.style.backgroundImage = `url(${state.globalSettings.moment.user.cover})`
+        let name = state.globalSettings.moment.user.name;
+        if (!name || name === 'undefined') {
+            name = ''
+        }
+        document.querySelector('.moment-user-name').innerText = name;
+        let momentList = state.globalSettings.moment.list;
+        const momentListDom = document.querySelector('.moment-list');
+        let html = ''
+        let index = 0;
+        momentList.sort((a, b) => b.time - a.time)
+        momentList.forEach((dom) => {
+            // 处理评论区域
+            let commentsHTML = '';
+            if (dom.comments && dom.comments.length > 0) {
+                dom.comments.forEach(comment => {
+                    commentsHTML += `
+                        <div class="moment-comment-item">
+                            <span class="moment-comment-author">${comment.role === 'user' ? '我' : comment.name}：</span>
+                            <span>${comment.content}</span>
+                            <i class="far fa-solid fa-xmark remove-comment"  data-id="${comment.id}"></i>
+                        </div>`;
+                });
+            }
+            // 处理点赞区
+            let appreciateHtml = '';
+            if (dom.appreciate && dom.appreciate.length > 0) {
+                dom.appreciate.forEach(item => {
+                    appreciateHtml += `
+                        ${item.content}`;
+                });
+            }
+            html += `
+            <div class="moment-item" data-id="${dom.id}">
+                <div class="moment-header">
+                    <div class="moment-avatar">
+                        <img src="${dom.role === 'user' ? state.globalSettings.moment.user.pic.trim() : dom.pic}" alt="">
+                    </div>
+                    <div class="moment-user">
+                        <div class="moment-name">${dom.role === 'user' ? name : dom.name}</div>
+                        <div class="moment-time">${formatTimeAgo(dom.time)}<i class="far fa-solid fa-xmark remove-moment"  data-id="${dom.id}"></i></div>
+                    </div>
+                </div>
+                <div class="moment-content">
+                    ${dom.content}
+                </div>
+                <div class="moment-images">
+                    <img src="${dom.image ? dom.image : ''}">
+                </div>
+                <div class="moment-actions">
+                    <div class="moment-action-btn moment-like-btn ${alreadyLiked(dom.appreciate) ? 'moment-liked' : ''}" >
+                        <i class="far fa-thumbs-up"></i>
+                        <span>${alreadyLiked(dom.appreciate) ? '已赞' : '赞'}</span>
+                    </div>
+                    <div class="moment-action-btn moment-comment-btn" >
+                        <i class="far fa-comment"></i>
+                        <span>评论</span>
+                    </div>
+                </div>
+
+                <!-- 点赞区域 -->
+                   ${appreciateHtml ? `
+                <div class="moment-likes-section">
+                    <i class="fas fa-thumbs-up"></i>
+                    ${appreciateHtml}
+                </div>` : ''}
+
+                <!-- 动态评论区域 -->
+                ${commentsHTML ? `
+                <div class="moment-comments-section">
+                    ${commentsHTML}
+                </div>` : ''}
+                
+                <!-- 评论输入框 -->
+                <div class="moment-add-comment">
+                    <input type="text" class="moment-comment-input" placeholder="评论...">
+                    <button class="moment-send-btn">发送</button>
+                </div>
+            </div>`;
+            index++;
+        })
+        momentListDom.innerHTML = html;
+    }
+
+    function formatTimeAgo(timestamp) {
+        // 标准化时间戳（处理秒级时间戳）
+        const normalizedTimestamp = timestamp < 1e12 ? timestamp * 1000 : timestamp;
+
+        const now = Date.now();
+        const diffMs = now - normalizedTimestamp; // 时间差（毫秒）
+
+        if (diffMs < 0) {
+            return "刚刚"; // 处理未来时间
+        }
+
+        const diffMins = Math.floor(diffMs / (1000 * 60));   // 分钟差
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60)); // 小时差
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)); // 天数差
+
+        if (diffMs < 3600000) { // 1小时 = 3,600,000毫秒
+            return `${diffMins}分钟前`;
+        } else if (diffMs < 86400000) { // 24小时 = 86,400,000毫秒
+            return `${diffHours}小时前`;
+        } else {
+            return `${diffDays}天前`;
+        }
+    }
+    function alreadyLiked(appreciate) {
+        if(Array.isArray(appreciate)){
+            return appreciate.find(item => {
+                return item.content && item.content.includes(state.globalSettings.moment.user.name)
+            })
+        }
+        return false
+    }
+    document.querySelector('.show-moment-modal').addEventListener('click', showMomentModal)
+    function showMomentModal() {
+        document.querySelector('.moment-modal').classList.add('show')
+    }
+    document.querySelector('.close-moment-modal').addEventListener('click', (e)=>{
+        document.querySelector('.moment-modal').classList.remove('show')
+    })
 });
