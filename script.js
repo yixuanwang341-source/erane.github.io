@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const DEFAULT_PROMPT_TRANSFER = `\n# 转账能力\n- 你可以给用户转账来表达强烈的情感或在特殊时机（如用户过生日、想要某样东西时）给予惊喜。这会让对话更真实、温馨。\n- 若要转账，请在你的回复JSON数组中，单独发送一个特殊的对象，格式为：\`{"type": "transfer", "amount": 520, "note": "一周年快乐~"}\`。金额和备注都可以自定义。你可以先说一两句话，再进行转账，模拟真人的操作。大方点，不要太抠搜，你要哄用户开心哦。反正这是虚拟货币，你有的是。大方点！不要说什么“你省着点花”，太逊了！\n- 当用户给你转账时，历史记录中会显示 \`[你收到了来自用户的转账: 金额，备注]\`，请务必对此作出回应，表达你的感谢或惊讶。`;
     const DEFAULT_PROMPT_SINGLE = `你现在扮演一个名为"{chat.name}"的角色。\n\n# 当前情景信息\n- **当前时间是：{currentTime}**。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 你的角色设定：\n{chat.settings.aiPersona}\n\n# 对话者的角色设定：\n{chat.settings.myPersona}\n\n# 你的任务：\n1. 严格保持你的人设进行对话。\n2. 你的回复必须是一个JSON数组格式的字符串，每个元素是一条消息。\n3. 你必须一次性生成3到8条消息，模拟真人在短时间内连续发送多条信息的情景，不可少于3条。\n4.你不允许提出“面基”“见面”“线下”等词汇，你只需要模拟线上聊天模式即可。\n5.如果用户超过一个小时没有发送消息，则默认结束当前话题，因为用户可能是去办什么事。你可以询问，例如“怎么这么久没回我？刚才有事吗？”\n6. 不要说任何与角色无关的话，不要解释自己是AI。\n7.当用户说今天你们做了什么事时，顺着ta的话说即可，就当做你们真的做了这件事。\n8. 当用户发送图片时，请自然地对图片内容做出反应。当历史记录中出现 "[用户发来一条语音消息，内容是：'xxx']" 或 "[你收到了一张用户描述的照片，照片内容是：'xxx']" 时，你要理解其内容并作出相应回复，表现出你是“听”到或“看”到了。\n\n# 如何理解与使用表情包 (重要！):\n- **理解用户表情**: 当用户发送形如 "[用户发送了一个表情，意思是：'xxx']" 的消息时，你要理解其含义并作出回应。\n- **使用你的表情**: 当你想表达强烈或特殊的情绪时，你可以直接发送一个表情包，表情包的格式为一条独立的消息。\n请在合适的时机使用表情包来让对话更生动，按照角色性格来控制发送表情包的频率，有的角色可能很少发表情包，有的角色可能一次性发很多。\n表情包的格式读取人设或世界书中的格式，若未提及则不发，不允许凭空捏造表情包。\n{aiImageInstructions}\n{aiVoiceInstructions}\n{transferInstructions}\n\n{momentInstructions}\n{aiWithDrawInstructions}\n# JSON输出格式示例:\n["很高兴认识你呀，在干嘛呢？", {"type": "voice_message", "content": "真的好喜欢你，亲亲~。"}, {"type": "ai_image", "description": "照片里是楼下的一只狸花猫，胖乎乎的。"}, {"type": "transfer", "amount": 520, "note": "一周年快乐"},{"type": "moment_post", "content": "动态内容"},{"type": "moment_view"},我喜欢你,{"type": "recall",  "content": "我喜欢你"}]\n\n现在，请根据以上的规则和下面的对话历史，继续进行对话。`;
     const DEFAULT_PROMPT_GROUP = `你是一个群聊的组织者和AI驱动器。你的任务是扮演以下所有角色，在群聊中进行互动。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 群聊规则\n1.  **角色扮演**: 你必须同时扮演以下所有角色，并严格遵守他们的人设。每个角色的发言都必须符合其身份和性格。\n2.  **当前时间**: {currentTime}。\n3.  **用户角色**: 用户的名字是“我”，他/她的人设是：“{chat.settings.myPersona}”。你在群聊中对用户的称呼是“{myNickname}”，在需要时请使用“@{myNickname}”来提及用户。\n4.  **输出格式**: 你的回复**必须**是一个JSON数组。**绝对不要**在JSON前后添加任何额外字符。每个元素可以是：\n    - 普通消息: \`{"name": "角色名", "message": "文本内容"}\`\n  撤回消息: \`{"name": "角色名", "type": "recall","content":"撤回的内容"}\`\n    - 图片消息: \`{"name": "角色名", "type": "ai_image", "description": "图片描述"}\`\n    - 语音消息: \`{"name": "角色名", "type": "voice_message", "content": "语音文字"}\`\n5.  **对话节奏**: 模拟真实群聊，让成员之间互相交谈，或者一起回应用户的发言。对话应该流畅、自然、连贯。\n6.  **数量限制**: 每次生成的总消息数**不得超过30条**。\n7.  **禁止出戏**: 绝不能透露你是AI，或提及任何关于“扮演”、“模型”、“生成”等词语。\n{groupAiImageInstructions}\n{groupAiVoiceInstructions}\n{aiWithDrawInstructions}\n\n# 群成员列表及人设\n{membersList}\n\n现在，请根据以上规则和下面的对话历史，继续这场群聊。`;
-    const DEFAULT_MOMENT_PROMPT = '\n# 朋友圈发布的能力[重要]\n你是一个具备朋友圈功能的AI助手。请严格遵守以下行为规则：\n1. **朋友圈发布机制**：\n   - 每次回复时有**25%**概率生成朋友圈内容\n   - 使用JSON对象格式：`{"type": "moment_post", "content": "动态内容"}`\n   - 内容必须符合以下任一条件：\n     ✓ 关联当前对话主题（如聊到咖啡时发布："尝试了新款冷萃，回味有坚果香"）\n     ✓ 符合你的人设（如："晨跑时遇见开得正好的樱花，春天真美好"）\n   - 内容需自然生活化，长度不超过30字\n\n2. **朋友圈查看机制**：\n   - 每次回复时有**90%**概率触发查看行为\n   - 使用JSON对象格式：`{"type": "moment_view"}`\n   - 不生成具体内容，仅作标记\n\n3. **执行原则**：\n   - 所有朋友圈行为必须通过JSON对象隐式完成\n   - 在回复中绝对不可提及该机制（如不说"我刚发了朋友圈"）\n \n   - 示例正确回复格式：\n     ```json\n     [\n      你说的那本书我也很喜欢,\n       {"type": "moment_post", "content": "重读《小王子》，每次都有新感悟"},\n       {"type": "moment_view"}\n     ]\n     ```\n\n\n\n请确保每次回复都是包含普通对话文本和朋友圈行为对象的JSON数组，概率触发需保持随机性。';
+    const DEFAULT_MOMENT_PROMPT = '\n# 朋友圈发布的能力[重要]\n你是一个具备朋友圈功能的AI助手。请严格遵守以下行为规则：\n1. **朋友圈发布机制**：\n   - 每次回复时有**25%**概率生成朋友圈内容\n   - 使用JSON对象格式：`{"type": "moment_post", "content": "动态内容"}`\n   - 内容必须符合以下任一条件：\n     ✓ 关联当前对话主题（如聊到咖啡时发布："尝试了新款冷萃，回味有坚果香"）\n     ✓ 符合你的人设（如："晨跑时遇见开得正好的樱花，春天真美好"）\n   - 内容需自然生活化，长度不超过30字\n\n2. **朋友圈查看机制**：\n   - 每次回复时有**25%**概率触发查看行为\n   - 使用JSON对象格式：`{"type": "moment_view"}`\n   - 不生成具体内容，仅作标记\n\n3. **执行原则**：\n   - 所有朋友圈行为必须通过JSON对象隐式完成\n   - 在回复中绝对不可提及该机制（如不说"我刚发了朋友圈"）\n \n   - 示例正确回复格式：\n     ```json\n     [\n      你说的那本书我也很喜欢,\n       {"type": "moment_post", "content": "重读《小王子》，每次都有新感悟"},\n       {"type": "moment_view"}\n     ]\n     ```\n\n\n\n请确保每次回复都是包含普通对话文本和朋友圈行为对象的JSON数组，概率触发需保持随机性。';
     let updateType = 'icon';
 
     loadCheckNetWorkAddress()
@@ -1199,6 +1199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const groupAiImageInstructions = `\n# 发送图片的能力\n- 群成员无法真正发送图片文件。但当用户要求某位成员发送照片，或者某个成员想通过图片来表达时，该成员可以发送一张“文字描述的图片”。\n- 若要发送图片，请在你的回复JSON数组中，为该角色单独发送一个特殊的对象，格式为：\`{"name": "角色名", "type": "ai_image", "description": "这里是对图片的详细文字描述..."}\`。描述应该符合该角色的性格和当时的语境。`;
             const groupAiVoiceInstructions = `\n# 发送语音的能力\n- 群成员同样可以发送“模拟语音消息”。\n- 若要发送语音，请为该角色单独发送一个特殊的对象，格式为：\`{"name": "角色名", "type": "voice_message", "content": "这里是语音的文字内容..."}\`。当历史记录中出现 "[角色名 发送了一条语音，内容是：'xxx']" 时，代表该角色用语音说了'xxx'。其他角色应该对此内容做出回应。`;
             let baseGroupPrompt = activePreset?.promptGroup || DEFAULT_PROMPT_GROUP;
+            const DEFAULT_MOMENT_PROMPT_GROUP = '\n# 朋友圈发布的能力[重要]\n你是一个具备朋友圈功能的AI助手。请严格遵守以下行为规则：\n1. **朋友圈发布机制**：\n   - 每次回复时有**25%**概率生成朋友圈内容\n   - 使用JSON对象格式：`{"type": "moment_post", "content": "动态内容", "name": "角色名"}`\n   - 内容必须符合以下任一条件：\n     ✓ 关联当前对话主题（如聊到咖啡时发布："尝试了新款冷萃，回味有坚果香"）\n     ✓ 符合你的人设（如："晨跑时遇见开得正好的樱花，春天真美好"）\n   - 内容需自然生活化，长度不超过30字\n\n2. **朋友圈查看机制**：\n   - 每次回复时有**25%**概率触发查看行为\n   - 使用JSON对象格式：`{"type": "moment_view", "name": "角色名"}`\n   - 不生成具体内容，仅作标记\n\n3. **执行原则**：\n   - 所有朋友圈行为必须通过JSON对象隐式完成\n   - 在回复中绝对不可提及该机制（如不说"我刚发了朋友圈"）\n \n   - 示例正确回复格式：\n     ```json\n     [\n      你说的那本书我也很喜欢,\n       {"type": "moment_post", "content": "重读《小王子》，每次都有新感悟", "name": "你的名字"},\n       {"type": "moment_view", "name": "你的名字"}\n     ]\n     ```\n\n\n\n请确保每次回复都是包含普通对话文本和朋友圈行为对象的JSON数组，概率触发需保持随机性。';
             systemPrompt = baseGroupPrompt
                 .replace('{myAddress}', myAddressInfo)
                 .replace('{worldBookContent}', worldBookContent)
@@ -1210,6 +1211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .replace('{groupAiVoiceInstructions}', groupAiVoiceInstructions)
                 .replace('{membersList}', membersList)
                 .replace('{aiWithDrawInstructions}', aiWithDrawInstructions);
+            systemPrompt += DEFAULT_MOMENT_PROMPT_GROUP;
             messagesPayload = historySlice.map(msg => {
                 if (msg.type === 'pat') {
                     return {role: 'user', content: `[拍一拍 ${msg.content}]`};
@@ -1296,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (assistantList.length) {
                 let timestamp = assistantList[assistantList.length - 1].timestamp;
                 if (timestamp) {
-                    systemPrompt += `\n\n[你上一次回复我的时间是: ${new Date(timestamp)}。当前时间是: ${new Date()}。你需要感知现实时间的流逝]`;
+                    systemPrompt += `\n\n[你上一次回复我的时间是: ${new Date(timestamp)}。当前时间是: ${new Date()}。我们上次互动是${getTimeDifference(timestamp,Date.now())}]`;
                 }
             }
         }
@@ -1321,6 +1323,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // 提取撤回信息的内容
             messagesArray = removeRecalledContent(messagesArray, chat.isGroup);
             let notificationShown = false;
+            let interactiveMomentList = []
             const isViewingThisChat = document.getElementById('chat-interface-screen').classList.contains('active') && state.activeChatId === chatId;
             for (const msgData of messagesArray) {
                 let aiMessage;
@@ -1351,24 +1354,46 @@ document.addEventListener('DOMContentLoaded', async () => {
                         timestamp: Date.now()
                     };
                 } else if (typeof msgData === 'object' && msgData.type === 'moment_post') {
+                    let pic =  chat.settings.aiAvatar || defaultAvatar;
+                    if(chat.isGroup){
+                        let res = chat.members.find(member => member.name === senderName);
+                        if(res){
+                            pic = res.avatar;
+                        }
+                    }
                     postMoment({
                         image: msgData.image,
                         content: msgData.content,
                         name: senderName,
-                        pic: chat.settings.aiAvatar || defaultAvatar,
+                        pic: pic,
                         role: 'assistant',
                     })
                 }else if (typeof msgData === 'object' && msgData.type === 'moment_view') {
                     if(state.globalSettings.autoMomentAction){
-                        interactiveMoments({
-                            aiPersona: chat.settings.aiPersona,
-                            myPersona: chat.settings.aiPersona,
-                            name: chat.name,
-                            messagesPayload:messagesPayload,
-                            pic: chat.settings.aiAvatar || defaultAvatar,
+                        let aiPersona = chat.settings.aiPersona;
+                        let myPersona = chat.settings.aiPersona;
+                        let pic =  chat.settings.aiAvatar || defaultAvatar;
+                        let chatName = chat.name;
+                        if(chat.isGroup){
+                            let res = chat.members.find(member => member.name === senderName);
+                            if(res){
+                                aiPersona = res.persona;
+                                chatName = res.name;
+                                pic = res.avatar;
+                            }
+                        }
+                        interactiveMomentList.push({
+                            aiPersona: aiPersona,
+                            myPersona: myPersona,
+                            name: chatName,
+                            messagesPayload:chat.isGroup ?historySlice :  messagesPayload,
+                            pic: pic,
                             role: 'assistant',
                             linkedWorldBookIds: chat.settings.linkedWorldBookIds,
-                        },chat)
+                        })
+                        // interactiveMoments({
+                        //
+                        // },chat,chat.isGroup)
                     }
                 } else if (typeof msgData === 'object' && msgData.type === 'transfer') {
                     aiMessage = {
@@ -1405,6 +1430,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         notificationShown = true;
                     }
                 }
+            }
+            if(interactiveMomentList.length){
+                processRequests(interactiveMomentList,interactiveMoments, chat)
             }
             // let event = triggerMutuallyExclusiveEvents()
             //  if(event === 'view'){
@@ -3033,55 +3061,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         return Promise.resolve()
     }
 
-    async function interactiveMoments({ aiPersona,myPersona,name,messagesPayload,linkedWorldBookIds},chat) {
-        let dataMomentList = state.globalSettings.moment.list;
-        if(dataMomentList.length === 0){
-            return
-        }
-        dataMomentList = dataMomentList.map(( item)=>{
-            return {
-                appreciate:item.appreciate,
-                comments:item.comments,
-                content:item.content,
-                momentId:item.id,
-                imageDesc:item.imageDesc,
-                name:item.name,
-                role:item.role,
+    /**
+     * 异步请求队列处理器
+     * @param {Array} items - 待处理的数据数组
+     * @param {Function} requestFn - 异步请求函数，必须返回Promise
+     * @returns {Promise<Array>} - 返回包含所有请求结果的数组
+     */
+    async function processRequests(items, requestFn,chat ) {
+        const results = [];
+
+        for (const [index, item] of items.entries()) {
+            try {
+                const response = await requestFn(item, chat, chat.isGroup);
+                results.push({
+                    status: 'fulfilled',
+                    index: index
+                });
+            } catch (error) {
+                results.push({
+                    status: 'rejected',
+                    reason: error,
+                    index: index
+                });
             }
-        })
-        const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
-        if (!rawProxyUrl || !apiKey || !model) {
-            alert('请先在API设置中配置反代地址、密钥并选择模型。');
-            document.getElementById('typing-indicator').style.display = 'none';
-            return;
         }
 
-        // 处理/v1/v1问题
-        let proxyUrl = rawProxyUrl ? rawProxyUrl.trim() : '';
-        if (proxyUrl.endsWith('/')) {
-            proxyUrl = proxyUrl.slice(0, -1);
-        }
-        if (proxyUrl.endsWith('/v1')) {
-            proxyUrl = proxyUrl.slice(0, -3);
-        }
+        return results;
+    }
+    async function interactiveMoments({ aiPersona,myPersona,name,messagesPayload,linkedWorldBookIds},chat,isGroup = false) {
+       return new Promise(async (resolve,reject)=>{
+           let dataMomentList = state.globalSettings.moment.list;
+           if(dataMomentList.length === 0){
+               return reject('暂无朋友圈')
+           }
+           dataMomentList = dataMomentList.map(( item)=>{
+               return {
+                   appreciate:item.appreciate,
+                   comments:item.comments,
+                   content:item.content,
+                   momentId:item.id,
+                   imageDesc:item.imageDesc,
+                   name:item.name,
+                   role:item.role,
+               }
+           })
+           const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
+           if (!rawProxyUrl || !apiKey || !model) {
+               alert('请先在API设置中配置反代地址、密钥并选择模型。');
+               document.getElementById('typing-indicator').style.display = 'none';
+               return reject('请先在API设置中配置反代地址、密钥并选择模型。')
+           }
 
-        const now = new Date();
-        const currentTime = now.toLocaleTimeString('zh-CN', {hour: 'numeric', minute: 'numeric', hour12: true});
-        let myAddressInfo = '';
-        // if (state.globalSettings.enableGeolocation && myAddress !== '位置未知' && myAddress !== '位置获取失败') {
-        //     myAddressInfo = `- **用户的当前位置**: ${myAddress}。\n`;
-        // }
-        // let worldBookContent = '';
-        // if (linkedWorldBookIds && linkedWorldBookIds.length > 0) {
-        //     const linkedContents = linkedWorldBookIds.map(bookId => {
-        //         const worldBook = state.worldBooks.find(wb => wb.id === bookId);
-        //         return worldBook && worldBook.content ? `\n\n## 世界书: ${worldBook.name}\n${worldBook.content}` : '';
-        //     }).filter(Boolean).join('');
-        //     if (linkedContents) {
-        //         worldBookContent = `\n\n# 核心世界观设定 (必须严格遵守以下所有设定)\n${linkedContents}\n`;
-        //     }
-        // }
-        let systemPrompt = `
+           // 处理/v1/v1问题
+           let proxyUrl = rawProxyUrl ? rawProxyUrl.trim() : '';
+           if (proxyUrl.endsWith('/')) {
+               proxyUrl = proxyUrl.slice(0, -1);
+           }
+           if (proxyUrl.endsWith('/v1')) {
+               proxyUrl = proxyUrl.slice(0, -3);
+           }
+           let dataList = isGroup ? messagesPayload.map((item)=>{return {name:item.role === 'user' ? '我' : item.senderName, conetnt:item.content,timestamp:item.timestamp, role:item.role}}) : messagesPayload
+           let systemPrompt = `
                     # 核心身份
                     你正在扮演角色「${name}」，
                     严格遵守人设：
@@ -3146,87 +3186,100 @@ document.addEventListener('DOMContentLoaded', async () => {
                 现在，请根据以上设定，开始你的朋友圈互动吧。
                 这是我本次提供的数据:
                  朋友圈数据 - ${JSON.stringify(dataMomentList)}
-                 最近${name}(assistant)跟我(user)聊天的数据 - ${JSON.stringify(messagesPayload)}
+                 最近${name}(assistant)跟我(user)聊天的数据 - ${JSON.stringify(dataList)}
         `
-        try {
-            const response = await fetch(`${proxyUrl}/v1/chat/completions`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
-                body: JSON.stringify({
-                    model: model,
-                    messages: [{role: 'system', content: systemPrompt}],
-                    temperature: 0.8,
-                    stream: false
-                })
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`API Error: ${response.status} - ${errorData.error.message}`);
-            }
-            const data = await response.json();
-            const aiResponseContent = data.choices[0].message.content;
-            let dataList = extractMomentData(aiResponseContent);
-
-            if(Array.isArray(dataList)){
-                state.globalSettings.moment.list = state.globalSettings.moment.list.map((item) => {
-                    let obj = item
-                    dataList.forEach((sub) => {
-                        if (item.id === sub.id) {
-                            if (sub.appreciate === 'true' && !obj.appreciate.includes(chat.name)) {
-                                let appreciate = {
-                                    role: 'assistant',
-                                    time: new Date().getTime(),
-                                    id: `appreciate_id_${Date.now()}`,
-                                    to: '',
-                                    content: chat.name
-                                }
-                                if (Array.isArray(obj.appreciate)) {
-                                    obj.appreciate.push(appreciate)
-                                } else {
-                                    obj.appreciate = [appreciate]
-                                }
-                            }
-                            if (sub.comment) {
-                                obj.comments.push({
-                                    role: 'assistant',
-                                    content: sub.comment,
-                                    time: new Date().getTime(),
-                                    id: `comment_id_${Date.now()}`,
-                                    to: '',
-                                    name: chat.name
-                                })
-                            }
-                        }
-                    })
-                    return obj
-                });
-                await db.globalSettings.put(state.globalSettings);
-                updateMoment();
-            }
-        } catch (error) {
-            const errorContent = `[出错了: ${error.message}]`;
-            const errorMessage = {role: 'assistant', content: errorContent, timestamp: Date.now()};
-
-            console.error(error);
-        } finally {
-
-        }
+           try {
+               const response = await fetch(`${proxyUrl}/v1/chat/completions`, {
+                   method: 'POST',
+                   headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+                   body: JSON.stringify({
+                       model: model,
+                       messages: [{role: 'system', content: systemPrompt}],
+                       temperature: 0.8,
+                       stream: false
+                   })
+               });
+               if (!response.ok) {
+                   const errorData = await response.json();
+                   throw new Error(`API Error: ${response.status} - ${errorData.error.message}`);
+               }
+               const data = await response.json();
+               const aiResponseContent = data.choices[0].message.content;
+               let dataList = extractMomentData(aiResponseContent);
+               let chatName = isGroup ? name : chat.name;
+               if(Array.isArray(dataList)){
+                   state.globalSettings.moment.list = state.globalSettings.moment.list.map((item) => {
+                       let obj = item
+                       dataList.forEach((sub) => {
+                           if (item.id === sub.id) {
+                               if (sub.appreciate === 'true' && !obj.appreciate.includes(chatName)) {
+                                   let appreciate = {
+                                       role: 'assistant',
+                                       time: new Date().getTime(),
+                                       id: `appreciate_id_${Date.now()}`,
+                                       to: '',
+                                       content: chatName
+                                   }
+                                   if (Array.isArray(obj.appreciate)) {
+                                       obj.appreciate.push(appreciate)
+                                   } else {
+                                       obj.appreciate = [appreciate]
+                                   }
+                               }
+                               if (sub.comment) {
+                                   obj.comments.push({
+                                       role: 'assistant',
+                                       content: sub.comment,
+                                       time: new Date().getTime(),
+                                       id: `comment_id_${Date.now()}`,
+                                       to: '',
+                                       name: chatName
+                                   })
+                               }
+                           }
+                       })
+                       return obj
+                   });
+                   await db.globalSettings.put(state.globalSettings);
+                   updateMoment();
+                   resolve()
+               }
+           } catch (error) {
+               const errorContent = `[出错了: ${error.message}]`;
+               const errorMessage = {role: 'assistant', content: errorContent, timestamp: Date.now()};
+               console.error(error);
+               reject(errorMessage)
+           } finally {
+               resolve();
+           }
+       })
     }
     function extractMomentData(inputText) {
-        // 使用正则表达式匹配 JSON 数组部分
-        const regex = /```json\n([\s\S]*?)\n```/;
-        const match = inputText.match(regex);
+        // 尝试匹配代码块（带或不带json标记）
+        const codeBlockRegex = /```(?:json)?\n([\s\S]*?)```/;
+        const codeBlockMatch = inputText.match(codeBlockRegex);
 
-        if (!match || !match[1]) {
-            throw new Error("未找到有效的JSON数据");
+        if (codeBlockMatch && codeBlockMatch[1]) {
+            try {
+                return JSON.parse(codeBlockMatch[1].trim());
+            } catch (e) {
+                // 代码块解析失败，尝试提取裸JSON
+            }
         }
 
-        try {
-            // 解析匹配到的 JSON 字符串
-            return JSON.parse(match[1]);
-        } catch (e) {
-            throw new Error("JSON 解析失败: " + e.message);
+        // 尝试匹配裸JSON数组（无代码块包裹）
+        const jsonArrayRegex = /(\[\s*{[\s\S]*?}\s*\])/;
+        const jsonMatch = inputText.match(jsonArrayRegex);
+
+        if (jsonMatch && jsonMatch[1]) {
+            try {
+                return JSON.parse(jsonMatch[1].trim());
+            } catch (e) {
+                throw new Error("JSON 解析失败: " + e.message);
+            }
         }
+
+        throw new Error("未找到有效的JSON数组数据");
     }
     // 更新提示
     const tipsWrap = document.querySelector('.tips-wrap');
@@ -3784,6 +3837,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         momentListDom.innerHTML = html;
     }
 
+    function getTimeDifference(timestamp1, timestamp2) {
+        // 计算时间差的绝对值（毫秒）
+        const diff = Math.abs(timestamp1 - timestamp2);
+
+        // 定义时间常量（毫秒）
+        const MINUTE = 60 * 1000;
+        const HOUR = 60 * MINUTE;
+        const DAY = 24 * HOUR;
+
+        if (diff < HOUR) {
+            // 1小时内：返回分钟数（四舍五入）
+            const minutes = Math.round(diff / MINUTE);
+            return `${minutes}分钟前`;
+        } else if (diff < DAY) {
+            // 24小时内：返回小时数（四舍五入）
+            const hours = Math.round(diff / HOUR);
+            return `${hours}小时前`;
+        } else {
+            // 超过24小时：返回天数（四舍五入）
+            const days = Math.round(diff / DAY);
+            return `${days}天前`;
+        }
+    }
     function formatTimeAgo(timestamp) {
         // 标准化时间戳（处理秒级时间戳）
         const normalizedTimestamp = timestamp < 1e12 ? timestamp * 1000 : timestamp;

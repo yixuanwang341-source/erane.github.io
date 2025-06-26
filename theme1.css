@@ -2675,3 +2675,6 @@ html #chat-settings-modal #add-group-member-btn {
     font-weight: normal;
     font-size: 14px;
 }
+html .bottom-nav{
+    color: #fff;
+}
