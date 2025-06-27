@@ -3419,8 +3419,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 // 检查文件大小 (限制5MB)
-                if (file.size > 5 * 1024 * 1024) {
-                    showError('图片大小不能超过5MB');
+                if (file.size > 10 * 1024 * 1024) {
+                    showError('图片大小不能超过10MB');
                     return;
                 }
 
