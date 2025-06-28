@@ -6,7 +6,7 @@ window.onload = async function() {
             url: `https://text.pollinations.ai/openai?token=${token}`,
             timeout: 150000, // 请求超时时间
             headers: {
-                headers: {'Authorization': `Bearer ${token}`}
+                // headers: {'Authorization': `Bearer ${token}`}
             },
         })
          const db = new Dexie('GeminiChatDB');
@@ -21,7 +21,7 @@ window.onload = async function() {
              presets: '&id, name', // 新增 presets 表
              imageApiConfig: '&id'
          })
-        let defaultSelectedModel = "flux";
+        let defaultSelectedModel = "turbo";
          const imageApiConfig = await db.imageApiConfig.get('global_config');
 
          if(imageApiConfig && db.imageApiConfig.imageModel){
@@ -66,7 +66,7 @@ window.onload = async function() {
             }
             let response = await service({
                 method: 'get',
-                url: `https://image.pollinations.ai/prompt/24岁女性,在家里喝着咖啡, 看着窗外?model=${defaultSelectedModel}&nologo=true&width=200&height=200`,
+                url: `https://image.pollinations.ai/prompt/${prompt}?model=${defaultSelectedModel}&nologo=true&width=200&height=200`,
                 responseType: 'arraybuffer' // 关键：接收二进制数据
             });
             if(response.status === 200 && response.data){
