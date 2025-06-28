@@ -10,23 +10,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/axios@1.6.7/dist/axios.min.js"></script>
     <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
-        <link rel="stylesheet"  href="./baseStyle.css">
-        <link rel="stylesheet"  href="./resources/moment.css">
-        <link rel="stylesheet" id="main-stylesheet"  href="./beautifyStyle.css">
+        <link rel="stylesheet"  href="baseStyle.css">
+        <link rel="stylesheet"  href="resources/moment.css">
+        <link rel="stylesheet" id="main-stylesheet"  href="beautifyStyle.css">
 <!--    <link rel="stylesheet" href="https://fastly.jsdelivr.net/gh/mxw13579/phone@release-v1.0.0.7/myPhone/baseStyle.css">-->
 <!--    <link rel="stylesheet" id="main-stylesheet"-->
 <!--          href="https://fastly.jsdelivr.net/gh/mxw13579/phone@release-v1.0.0.7/myPhone/beautifyStyle.css">-->
     <!--    <link rel="stylesheet" href="./theme1.css">-->
     <!--    <link rel="stylesheet" id="main-stylesheet" href="./beautifyStyle.css">-->
-<!--    <script>-->
-<!--        var _hmt = _hmt || [];-->
-<!--        (function () {-->
-<!--            var hm = document.createElement("script");-->
-<!--            hm.src = "https://hm.baidu.com/hm.js?95a870260e9246d70af33963cc4ded39";-->
-<!--            var s = document.getElementsByTagName("script")[0];-->
-<!--            s.parentNode.insertBefore(hm, s);-->
-<!--        })();-->
-<!--    </script>-->
+    <script>
+        var _hmt = _hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?95a870260e9246d70af33963cc4ded39";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
 </head>
 <body>
 
@@ -137,9 +137,6 @@
                 <div class="form-group"><label for="model-select">模型</label><select id="model-select"></select></div>
                 <button class="form-button" id="fetch-models-btn">拉取模型</button>
                 <button class="form-button" id="save-api-settings-btn">保存设置</button>
-                <hr class="settings-divider">
-                <div class="form-group"><label for="model-select">生图模型</label><select id="image-model-select"></select></div>
-                <button class="form-button" id="fetch-image-models-btn">拉取模型</button>
                 <hr class="settings-divider">
                 <div class="form-group toggle-switch-group">
                     <label for="geolocation-toggle">开启IP地理定位</label>
@@ -830,8 +827,7 @@
 
 <audio id="audio-player" style="display:none;"></audio>
 
-<script src="./script.js"></script>
-<script src="./js/pollinationsAI.js"></script>
+<script src="script.js"></script>
 <!--<script src="./script.js"></script>-->
 </body>
 </html>
