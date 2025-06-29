@@ -22,11 +22,13 @@ window.onload = async function() {
              imageApiConfig: '&id'
          })
         let defaultSelectedModel = "turbo";
+        let defaultEnabled = true;
          const imageApiConfig = await db.imageApiConfig.get('global_config');
 
-         if(imageApiConfig && db.imageApiConfig.imageModel){
+         if(imageApiConfig && imageApiConfig.imageModel){
             defaultSelectedModel = imageApiConfig.imageModel
         }
+
         let loading = false;
          const btn = document.querySelector('#fetch-image-models-btn')
         document.querySelector('#fetch-image-models-btn').addEventListener('click',(e)=>{
@@ -34,9 +36,22 @@ window.onload = async function() {
             getModels()
         })
         document.querySelector('#image-model-select').addEventListener('change',async (e)=>{
-            await db.imageApiConfig.put({ imageModel: e.target.value,id: 'global_config' });
+            const imageApiConfig = await db.imageApiConfig.get('global_config');
+            await db.imageApiConfig.put({ ...imageApiConfig, imageModel: e.target.value });
             defaultSelectedModel = e.target.value;
         })
+
+       let autoPhotoToggle = document.querySelector('#autoPhoto-toggle')
+       autoPhotoToggle.checked = defaultEnabled;
+       if(imageApiConfig && imageApiConfig.enabled !== ''){
+           defaultEnabled = imageApiConfig.enabled;
+           autoPhotoToggle.checked = imageApiConfig.enabled;
+       }
+       autoPhotoToggle.addEventListener('change',async (e)=>{
+           const imageApiConfig = await db.imageApiConfig.get('global_config');
+           await db.imageApiConfig.put({...imageApiConfig, enabled: e.target.checked });
+           defaultEnabled = e.target.checked;
+       })
         async function getModels() {
             if(loading){
                 return
@@ -61,8 +76,9 @@ window.onload = async function() {
             loading = false
         }
         async function getImage(prompt) {
-            if(!prompt){
-                return Promise.resolve('')
+            const imageApiConfig = await db.imageApiConfig.get('global_config');
+            if(!prompt || !imageApiConfig.enabled){
+                return Promise.resolve('https://i.postimg.cc/KYr2qRCK/1.jpg')
             }
             let response = await service({
                 method: 'get',
