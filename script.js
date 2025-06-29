@@ -3104,6 +3104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
            if(dataMomentList.length === 0){
                return reject('暂无朋友圈')
            }
+           const maxMemory = parseInt(chat.settings.maxMemory) || 10;
            dataMomentList = dataMomentList.map(( item)=>{
                return {
                    appreciate:item.appreciate,
@@ -3114,7 +3115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                    name:item.name,
                    role:item.role,
                }
-           })
+           }).slice(-maxMemory)
            const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
            if (!rawProxyUrl || !apiKey || !model) {
                alert('请先在API设置中配置反代地址、密钥并选择模型。');
@@ -3132,12 +3133,6 @@ document.addEventListener('DOMContentLoaded', async () => {
            }
            let dataList = isGroup ? messagesPayload.map((item)=>{return {name:item.role === 'user' ? '我' : item.senderName, conetnt:item.content,timestamp:item.timestamp, role:item.role}}) : messagesPayload
            let systemPrompt = `
-                    # 核心身份
-                    你正在扮演角色「${name}」，
-                    严格遵守人设：
-                    ${aiPersona}
-                    # 我与你的关系:
-                    ${myPersona}
                     **你将遵循以下互动原则：**
 
                 1.  **数据格式：**
@@ -3181,7 +3176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 2.  **互动优先级与策略：**
                     *   **优先互动“@我”或与我强相关的内容：** 如果朋友圈内容或评论中直接提到了你（“@”了你的名字），这是最高优先级，必须立即构思有意义的回复。
-                    *   **其次是回复我的朋友圈：** 当你（{chat.name}）发布的朋友圈有新评论时（\`comments\`不为空），你需要积极回复评论者，营造出热情好客的主人形象。
+                    *   **其次是回复我的朋友圈：** 当你（assistant)发布的朋友圈有新评论时（\`comments\`不为空），你需要积极回复评论者，营造出热情好客的主人形象。
                     *   **接着是互动亲密朋友：** 你可以设定一个“亲密朋友”列表（例如：\`["张三", "李四", "王五"]\`）。这些朋友的动态，即使是简单的日常分享，你也应该更积极地互动。
                     *   **然后是选择性互动其他朋友圈：** 挑选那些能够引发真情实感或有共同话题的朋友圈进行互动。避免为了互动而互动。
                     *   **避免重复互动：** 如果你已经对某条朋友圈点赞并评论过，则应跳过，寻找其他未互动的动态。
@@ -3194,17 +3189,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 JSON数据输出示例[重要!!!]:
                 [{"id":"moment_id_1750787266901",appreciate": "false","comment": "完全同意！特别是忙碌了一天之后，这种放松感太重要了。"}]
                 现在，请根据以上设定，开始你的朋友圈互动吧。
-                这是我本次提供的数据:
-                 朋友圈数据 - ${JSON.stringify(dataMomentList)}
-                 最近${name}(assistant)跟我(user)聊天的数据 - ${JSON.stringify(dataList)}
         `
+           let otherPrompt = [
+               {
+                   role: 'assistant',
+                   content: `你正在扮演角色「${name}」，严格遵守人设：${aiPersona}`
+               },
+               {
+                   role: 'user',
+                   content: `我的人设:${myPersona}, 最近你(${name})跟我聊天的数据 - ${JSON.stringify(dataList)}`
+               },
+               {
+                   role: 'user',
+                   content: `这是我的朋友圈数据 - ${JSON.stringify(dataMomentList)}`
+               },
+           ]
            try {
                const response = await fetch(`${proxyUrl}/v1/chat/completions`, {
                    method: 'POST',
                    headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
                    body: JSON.stringify({
                        model: model,
-                       messages: [{role: 'system', content: systemPrompt}],
+                       messages: [{role: 'system', content: systemPrompt},...otherPrompt],
                        temperature: 0.8,
                        stream: false
                    })
