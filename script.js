@@ -15,7 +15,7 @@ function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const screenToShow = document.getElementById(screenId);
     if (screenToShow) screenToShow.classList.add('active');
-    if (screenId === 'chat-interface-screen') window.updateListenTogetherIconProxy(state.activeChatId);
+    // if (screenId === 'chat-interface-screen') window.updateListenTogetherIconProxy(state.activeChatId);
 }
 
 // Global proxy to be assigned later, prevents errors on initial load
@@ -1435,8 +1435,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 }
             }
-            if(interactiveMomentList.length){
-                processRequests(interactiveMomentList,interactiveMoments, chat)
+            if(interactiveMomentList.length > 0){
+                setTimeout(function () {
+                    processRequests(interactiveMomentList,interactiveMoments, chat)
+                },500)
             }
             // let event = triggerMutuallyExclusiveEvents()
             //  if(event === 'view'){
