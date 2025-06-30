@@ -23,8 +23,11 @@ window.onload = async function() {
          })
         let defaultSelectedModel = "turbo";
         let defaultEnabled = true;
-         const imageApiConfig = await db.imageApiConfig.get('global_config');
-
+         let imageApiConfig = await db.imageApiConfig.get('global_config');
+         if(!imageApiConfig){
+             await db.imageApiConfig.put({ id:'global_config', imageModel: defaultSelectedModel , enabled:true});
+         }
+        imageApiConfig = await db.imageApiConfig.get('global_config');
          if(imageApiConfig && imageApiConfig.imageModel){
             defaultSelectedModel = imageApiConfig.imageModel
         }
@@ -77,7 +80,7 @@ window.onload = async function() {
         }
         async function getImage(prompt) {
             const imageApiConfig = await db.imageApiConfig.get('global_config');
-            if(!prompt || !imageApiConfig.enabled){
+            if(!prompt || (imageApiConfig && !imageApiConfig.enabled)){
                 return Promise.resolve('https://i.postimg.cc/KYr2qRCK/1.jpg')
             }
             let response = await service({
