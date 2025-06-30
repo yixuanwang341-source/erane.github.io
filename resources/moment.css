@@ -9,6 +9,10 @@
     display: none;
     /*display: flex;*/
     flex-direction: column;
+    max-height: 100vh;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+
 }
 .moment-modal.show{
     display: flex;
@@ -43,13 +47,13 @@
 /* 封面区域 */
 .moment-cover-container {
     position: relative;
-    height: 240px;
+    /*height: 240px;*/
     margin-top: 44px;
 }
 
 .moment-cover-img {
     width: 100%;
-    height: 100%;
+    height: 240px;
     background-color: #2575fc;
     background-size: cover;
     background-repeat: no-repeat;
@@ -86,8 +90,10 @@
 /* 内容区域 */
 .moment-content-area {
     /*padding: 60px 15px 20px;*/
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    /*overflow: auto;*/
+    /*-webkit-overflow-scrolling: touch;*/
+    /*position: relative;*/
+    /*z-index: 30;*/
 }
 
 .moment-list {
