@@ -1284,6 +1284,15 @@ body {
     overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
+.tips-wrap.error{
+    color: #fff;
+    background-color: #F56C6C;
+}
+.tips-wrap.error .tips-title{
+    color: #fff;
+}
+.tips-wrap.error{
+}
 .tips-wrap.visible{
     display: block;
 }
