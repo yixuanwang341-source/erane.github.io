@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         musicLibrary: '&id',
         personaPresets: '&id',
         imageApiConfig: '&id',
+        apiConfigs: "&id",
         presets: '&id, name' // 新增 presets 表
     }).upgrade(async tx => {
         // 数据迁移逻辑：将旧的全局预设转换为新的预设条目
@@ -101,6 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         worldBooks: [],
         personaPresets: [],
         imageApiConfig:{},
+        apiConfigs:[],
         presets: [] // 新增 presets 数组
     };
     let myAddress = '位置未知';
@@ -149,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             acc[chat.id] = chat;
             return acc;
         }, {});
-        state.apiConfig = apiConfig || {id: 'main', proxyUrl: '', apiKey: '', model: ''};
+        state.apiConfig = apiConfig || {id: 'main', proxyUrl: '', apiKey: '', model: '',activeName:'default',apiType:'api'};
         const defaultGlobalSettings = {
             id: 'main',
             wallpaper: 'linear-gradient(135deg, #89f7fe, #66a6ff)',
@@ -215,6 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         updateAppIcons();
         updateMoment()
+        updateApiConfigs()
 
         // interactiveMoments({name:'小方'})
         // // 如果没有撤回提示，则设置默认值
@@ -1146,8 +1149,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (state.activeChatId) {
             document.getElementById('typing-indicator').style.display = 'block';
         }
-        const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
-
+        const {proxyUrl: rawProxyUrl, apiKey, model, apiType} = state.apiConfig;
+        const isGemini = apiType === 'gemini';
         if (!rawProxyUrl || !apiKey || !model) {
             alert('请先在API设置中配置反代地址、密钥并选择模型。');
             document.getElementById('typing-indicator').style.display = 'none';
@@ -1304,23 +1307,64 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
         }
+        if(isGemini){
+            let roleType = {
+                user: 'user',
+                assistant: 'model'
+            }
+            messagesPayload = messagesPayload.map((item)=>{
+                return {
+                    role: roleType[item.role],
+                    parts: [
+                        {
+                            text: item.content
+                        }
+                    ]
+                }
+            })
+        }
         try {
-            const response = await fetch(`${proxyUrl}/v1/chat/completions`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
-                body: JSON.stringify({
-                    model: model,
-                    messages: [{role: 'system', content: systemPrompt}, ...messagesPayload],
-                    temperature: 0.8,
-                    stream: false
-                })
-            });
+            let baseConfig = {
+                url: `${proxyUrl}/v1/chat/completions`,
+                data:{
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{role: 'system', content: systemPrompt}, ...messagesPayload],
+                        temperature: 0.8,
+                        stream: false
+                    })
+                }
+            }
+            let geminiConfig = {
+                url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}&transport=rest`,
+                data:{
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: messagesPayload,
+                        generationConfig: {
+                            temperature: 0.8,     // 创意度 (0-1)
+                        },
+                        "systemInstruction": {
+                            "parts": [{
+                                "text": systemPrompt
+                            }]
+                        }
+                    })
+                }
+            }
+            const response = await fetch(isGemini ? geminiConfig.url : baseConfig.url, isGemini ? geminiConfig.data : baseConfig.data);
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`API Error: ${response.status} - ${errorData.error.message}`);
             }
             const data = await response.json();
-            const aiResponseContent = data.choices[0].message.content;
+
+            const aiResponseContent = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
             let messagesArray = parseAiResponse(aiResponseContent);
             // 提取撤回信息的内容
             messagesArray = removeRecalledContent(messagesArray, chat.isGroup);
@@ -2367,7 +2411,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             state.apiConfig.proxyUrl = document.getElementById('proxy-url').value.trim();
             state.apiConfig.apiKey = document.getElementById('api-key').value.trim();
             state.apiConfig.model = document.getElementById('model-select').value;
+            state.apiConfig.activeName = document.getElementById('api-name-select').value;
+            state.apiConfig.apiType = document.getElementById('api-type-select').value || 'api';
             await db.apiConfig.put(state.apiConfig);
+            let name = sessionStorage.getItem('apiName')
+            let activeApiName = sessionStorage.getItem('activeApiName')
+            if(activeApiName){
+                await db.apiConfigs.update(activeApiName,{
+                    url:state.apiConfig.proxyUrl,
+                    key:state.apiConfig.apiKey,
+                    model:state.apiConfig.model,
+                    type:state.apiConfig.apiType
+                })
+            }else if(name){
+                await db.apiConfigs.put({
+                    id:'apiConfigId' + Date.now(),
+                    url:state.apiConfig.proxyUrl,
+                    key:state.apiConfig.apiKey,
+                    model:state.apiConfig.model,
+                    type:state.apiConfig.apiType,
+                    name: name
+                });
+            }
+            // sessionStorage.removeItem('apiName')
+            // sessionStorage.removeItem('activeApiName')
+            updateApiConfigs();
             alert('API设置已保存!');
         });
         let loading = false;
@@ -2378,6 +2446,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             loading = true;
             e.target.textContent = '正在获取模型列表...';
             let url = document.getElementById('proxy-url').value.trim();
+            let apiType = document.getElementById('api-type-select').value.trim();
             const key = document.getElementById('api-key').value.trim();
             if (!url || !key) {
                 loading = false;
@@ -2395,11 +2464,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             try {
-                let response = await axios({
+                let baseConfigs = {
                     method: 'get',
                     url: `${url}/v1/models`,
                     headers: {'Authorization': `Bearer ${key}`}
-                });
+                }
+                let geminiApi = {
+                    method: 'get',
+                    url: `https://generativelanguage.googleapis.com/v1beta/models?key=${key}&transport=rest`,
+                }
+                let isGemini = apiType === 'gemini';
+                let response = await axios(isGemini ? geminiApi : baseConfigs);
                 if (response.status !== 200) {
                     alert('无法获取模型列表')
                     loading = false;
@@ -2415,10 +2490,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // const data = await response.json();
                 const modelSelect = document.getElementById('model-select');
                 modelSelect.innerHTML = '';
-                data.data.forEach(model => {
+                let models = isGemini ? data.models : data.data;
+                if(isGemini){
+                    models = models.map((model)=>{
+                        const parts = model.name.split('/');
+                        return {
+                            id:parts.length > 1 ? parts[1] : model.name
+                        }
+                    })
+                }
+                models.forEach(model => {
                     const option = document.createElement('option');
-                    option.value = model.id;
-                    option.textContent = model.id;
+                    option.value =  model.id;
+                    option.textContent =   model.id;
                     if (model.id === state.apiConfig.model) option.selected = true;
                     modelSelect.appendChild(option);
                 });
@@ -3122,7 +3206,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                    role:item.role,
                }
            }).slice(-maxMemory)
-           const {proxyUrl: rawProxyUrl, apiKey, model} = state.apiConfig;
+           const {proxyUrl: rawProxyUrl, apiKey, model, apiType} = state.apiConfig;
+           const isGemini = apiType === 'gemini';
            if (!rawProxyUrl || !apiKey || !model) {
                alert('请先在API设置中配置反代地址、密钥并选择模型。');
                document.getElementById('typing-indicator').style.display = 'none';
@@ -3137,7 +3222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
            if (proxyUrl.endsWith('/v1')) {
                proxyUrl = proxyUrl.slice(0, -3);
            }
-           let dataList = isGroup ? messagesPayload.map((item)=>{return {name:item.role === 'user' ? '我' : item.senderName, conetnt:item.content,timestamp:item.timestamp, role:item.role}}) : messagesPayload
+           let dataList = isGroup ? messagesPayload.map((item)=>{return {name:item.role === 'user' ? '我' : item.senderName, content:item.content,timestamp:item.timestamp, role:item.role}}) : messagesPayload
            let systemPrompt = `
                     **你将遵循以下互动原则：**
 
@@ -3198,7 +3283,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `
            let otherPrompt = [
                {
-                   role: 'assistant',
+                   role: isGemini ? 'model' :'assistant',
                    content: `你正在扮演角色「${name}」，严格遵守人设：${aiPersona}`
                },
                {
@@ -3211,22 +3296,46 @@ document.addEventListener('DOMContentLoaded', async () => {
                },
            ]
            try {
-               const response = await fetch(`${proxyUrl}/v1/chat/completions`, {
-                   method: 'POST',
-                   headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
-                   body: JSON.stringify({
-                       model: model,
-                       messages: [{role: 'system', content: systemPrompt},...otherPrompt],
-                       temperature: 0.8,
-                       stream: false
-                   })
-               });
+               let baseConfig = {
+                   url: `${proxyUrl}/v1/chat/completions`,
+                   data:{
+                       method: 'POST',
+                       headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+                       body: JSON.stringify({
+                           model: model,
+                           messages: [{role: 'system', content: systemPrompt},...otherPrompt],
+                           temperature: 0.8,
+                           stream: false
+                       })
+                   }
+               }
+               let geminiConfig = {
+                   url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+                   data:{
+                       method: 'POST',
+                       headers: {
+                           'Content-Type': 'application/json'
+                       },
+                       body: JSON.stringify({
+                           contents: otherPrompt,
+                           generationConfig: {
+                               temperature: 0.8,     // 创意度 (0-1)
+                           },
+                           "systemInstruction": {
+                               "parts": [{
+                                   "text": systemPrompt
+                               }]
+                           }
+                       })
+                   }
+               }
+               const response = await fetch(isGemini ? geminiConfig.url : baseConfig.url, isGemini ? geminiConfig.data : baseConfig.data);
                if (!response.ok) {
                    const errorData = await response.json();
                    throw new Error(`API Error: ${response.status} - ${errorData.error.message}`);
                }
                const data = await response.json();
-               const aiResponseContent = data.choices[0].message.content;
+               const aiResponseContent = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
                let dataList = extractMomentData(aiResponseContent);
                let chatName = isGroup ? name : chat.name;
                if(Array.isArray(dataList)){
@@ -3919,5 +4028,111 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     document.querySelector('.close-moment-modal').addEventListener('click', (e)=>{
         document.querySelector('.moment-modal').classList.remove('show')
+    })
+    document.querySelector('.create-new-api-name').addEventListener('click', async (e)=>{
+       let name =  prompt('请输入API名称');
+        let list = await db.apiConfigs.toArray();
+       if(!(name.trim())){
+           alert('请输入API名称')
+           return
+       }
+        let n  = list.find((item)=>item.name === name);
+        if(n){
+            alert(name+' 已存在')
+            return
+        }
+        sessionStorage.setItem('apiName',name)
+    })
+    document.querySelector('#api-name-select').addEventListener('change', async (e)=>{
+        sessionStorage.setItem('activeApiName',e.target.value)
+        let list = await db.apiConfigs.toArray();
+        let res = list.find(item=>item.id === e.target.value);
+        if(res){
+            await db.apiConfig.update('main',{
+                model:res.model,
+                proxyUrl: res.url,
+                apiKey: res.key,
+                activeName:res.id,
+                apiType:res.type
+            })
+            document.getElementById('proxy-url').value = res.url || '';
+            document.getElementById('api-key').value = res.key || '';
+            document.getElementById('api-type-select').value = res.type || 'api';
+        }
+
+    })
+    document.querySelector('.update-new-api-name').addEventListener('click', async (e)=>{
+        let api = await db.apiConfig.get('main');
+        let list = await db.apiConfigs.toArray();
+        const res = list.find((item)=>item.id === api.activeName)
+        let value = ''
+        if(res){
+            value = res.name
+        }
+        let name =  prompt('请输入新的API名称',value);
+        if(!(name.trim())){
+            alert('请输入API名称')
+            return
+        }
+        let n  = list.find((item)=>item.name === name);
+        if(n){
+            alert(name+' 已存在')
+            return
+        }
+        await db.apiConfigs.update(res.id,{
+            name:name
+        })
+        updateApiConfigs()
+    })
+    async function updateApiConfigs() {
+        let list = await db.apiConfigs.toArray();
+        let api = await db.apiConfig.get('main');
+        let select = document.querySelector('#api-name-select');
+        select.innerHTML = '';
+        let defaultOption = document.createElement('option');
+        defaultOption.value = 'default';
+        defaultOption.label = '默认';
+        let url = '';
+        let key = '';
+        let apiType = 'api';
+        if(list.length){
+            const res = list.find((item)=>item.id === 'default')
+            if(!res){
+                select.append(defaultOption)
+            }
+            list.forEach(item=>{
+                let option = document.createElement('option');
+                let selected = api.activeName === item.id;
+                option.value = item.id;
+                option.label = item.name;
+                option.selected = selected;
+                if( selected){
+                    url = item.url;
+                    key = item.key;
+                    apiType = item.type
+                }
+                select.append(option)
+            })
+        }else {
+                await db.apiConfigs.put({
+                    id:'default',
+                    url:state.apiConfig.proxyUrl,
+                    key:state.apiConfig.apiKey,
+                    model:state.apiConfig.model,
+                    apiType:'api',
+                    name: '默认'
+                });
+            url = state.apiConfig.proxyUrl;
+            key = state.apiConfig.apiKey;
+            select.append(defaultOption)
+        }
+
+        document.getElementById('proxy-url').value = url || '';
+        document.getElementById('api-key').value = key || '';
+        document.getElementById('api-type-select').value = apiType || 'api';
+    }
+    document.querySelector('#api-type-select').addEventListener('change', async (e)=>{
+        // https://generativelanguage.googleapis.com/v1beta/models
+        document.getElementById('proxy-url').value = 'https://generativelanguage.googleapis.com/v1beta/models';
     })
 });

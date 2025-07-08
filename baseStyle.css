@@ -1869,3 +1869,25 @@ body {
 .bottom-nav .nav-item:not(:last-of-type){
     border-right: 1px solid #e0e0e0;
 }
+
+.api-name-select{
+    display: flex;
+}
+.api-name-select select{
+    flex: 1;
+    margin-right: 5px;
+}
+.api-name-select span{
+    padding: 5px 10px;
+    display: block;
+    flex: none;
+}
+.api-tips{
+    color: #8a8a8a;
+    font-size: 14px;
+    margin: 0;
+}
+.tips-content-desc{
+    text-align: left;
+    padding: 0 10px;
+}

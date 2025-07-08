@@ -19,7 +19,8 @@ window.onload = async function() {
              musicLibrary: '&id',
              personaPresets: '&id',
              presets: '&id, name', // 新增 presets 表
-             imageApiConfig: '&id'
+             imageApiConfig: '&id',
+             apiConfigs: "&id",
          })
         let defaultSelectedModel = "turbo";
         let defaultEnabled = true;
