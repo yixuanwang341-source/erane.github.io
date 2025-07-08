@@ -1338,7 +1338,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
             let geminiConfig = {
-                url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}&transport=rest`,
+                url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
                 data:{
                     method: 'POST',
                     headers: {
@@ -2416,7 +2416,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await db.apiConfig.put(state.apiConfig);
             let name = sessionStorage.getItem('apiName')
             let activeApiName = sessionStorage.getItem('activeApiName')
-            if(activeApiName){
+            if(activeApiName && !name){
                 await db.apiConfigs.update(activeApiName,{
                     url:state.apiConfig.proxyUrl,
                     key:state.apiConfig.apiKey,
@@ -2433,8 +2433,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     name: name
                 });
             }
-            // sessionStorage.removeItem('apiName')
-            // sessionStorage.removeItem('activeApiName')
+
             updateApiConfigs();
             alert('API设置已保存!');
         });
@@ -2462,7 +2461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (url.endsWith('/v1')) {
                 url = url.slice(0, -3);
             }
-
+            let isGemini = apiType === 'gemini';
             try {
                 let baseConfigs = {
                     method: 'get',
@@ -2471,9 +2470,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 let geminiApi = {
                     method: 'get',
-                    url: `https://generativelanguage.googleapis.com/v1beta/models?key=${key}&transport=rest`,
+                    url: `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`,
                 }
-                let isGemini = apiType === 'gemini';
+
                 let response = await axios(isGemini ? geminiApi : baseConfigs);
                 if (response.status !== 200) {
                     alert('无法获取模型列表')
@@ -2512,7 +2511,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 loading = false;
                 e.target.textContent = '拉取模型列表';
-                alert(`拉取模型失败: ${error.message}`);
+                console.log(error)
+                alert(`拉取模型失败: ${isGemini?error.response.data.error.message : error.message}`);
             }
         });
 
@@ -4045,6 +4045,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
     document.querySelector('#api-name-select').addEventListener('change', async (e)=>{
         sessionStorage.setItem('activeApiName',e.target.value)
+        sessionStorage.removeItem('apiName')
         let list = await db.apiConfigs.toArray();
         let res = list.find(item=>item.id === e.target.value);
         if(res){
@@ -4130,6 +4131,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('proxy-url').value = url || '';
         document.getElementById('api-key').value = key || '';
         document.getElementById('api-type-select').value = apiType || 'api';
+        sessionStorage.removeItem('apiName')
+        sessionStorage.removeItem('activeApiName')
     }
     document.querySelector('#api-type-select').addEventListener('change', async (e)=>{
         // https://generativelanguage.googleapis.com/v1beta/models
