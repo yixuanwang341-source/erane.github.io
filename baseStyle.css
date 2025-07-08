@@ -1302,7 +1302,7 @@ body {
     padding:  10px;
 }
 .tips-content{
-    max-height: 400px;
+    max-height: 14rem;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
