@@ -1301,6 +1301,11 @@ body {
     height: 100%;
     padding:  10px;
 }
+.tips-content{
+    max-height: 400px;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
 .tips-wrap.active.important-updates .tips-content{
     text-align: left;
 }
