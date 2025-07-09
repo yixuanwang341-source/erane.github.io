@@ -1312,16 +1312,37 @@ document.addEventListener('DOMContentLoaded', async () => {
                 user: 'user',
                 assistant: 'model'
             }
-            messagesPayload = messagesPayload.map((item)=>{
-                return {
-                    role: roleType[item.role],
-                    parts: [
+            function isImage(content) {
+                if(content.image_url && content.image_url.url){
+                    let currentImageData = content.image_url.url
+                    // 提取Base64数据（去掉前缀）
+                    const base64Data = currentImageData.split(',')[1];
+                    // 根据图片类型获取MIME类型
+                    const mimeType = currentImageData.match(/^data:(.*);base64/)[1];
+                    return [
+                        {text: '用户向你发送了一张图片'},
                         {
-                            text: item.content
+                            inline_data: {
+                                mime_type: mimeType,
+                                data: base64Data
+                            }
                         }
                     ]
                 }
+                return []
+            }
+            messagesPayload = messagesPayload.map((item)=>{
+                return {
+                    role: roleType[item.role],
+                    parts:Array.isArray(item.content) && item.content.length > 0 && item.content[0].type === 'image_url' ? isImage(item.content[0]) : [{text: item.content}]
+                    // parts: [
+                    //     {
+                    //         text: item.content
+                    //     }
+                    // ]
+                }
             })
+
         }
         try {
             let baseConfig = {
