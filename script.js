@@ -1078,6 +1078,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             contentHtml = String(msg.content || '').replace(/\n/g, '<br>');
         }
+        console.log(formatTimestamp(msg.timestamp))
         bubble.innerHTML = `<div class="avatar-group"><img src="${avatarSrc}" class="avatar"><span class="timestamp">${formatTimestamp(msg.timestamp)}</span></div><div class="content">${contentHtml}</div>`;
         addLongPressListener(bubble, () => enterSelectionMode(msg.timestamp));
         bubble.addEventListener('click', () => {
@@ -1140,7 +1141,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-    function formatTimestamp(timestamp) {
+    function formatTimestamp2(timestamp) {
         const date = new Date(timestamp);
 
         // 获取日期组件
@@ -1321,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // systemPrompt += `\n\n[你上一次回复我的时间是: ${formatTimestamp(new Date(timestamp))}。当前时间是: ${formatTimestamp(Date.now())}。我们上次互动是${getTimeDifference(timestamp,Date.now())}]`;
                     systemPrompt += `
                     【时间上下文】
-                     请注意：我们上一次互动发生在 ${formatTimestamp(new Date(timestamp))}，当前系统时间为 ${formatTimestamp(Date.now())}。距离上次对话已过去 **${getTimeDifference(timestamp,Date.now())}**。
+                     请注意：我们上一次互动发生在 ${formatTimestamp2(new Date(timestamp))}，当前系统时间为 ${formatTimestamp2(Date.now())}。距离上次对话已过去 **${getTimeDifference(timestamp,Date.now())}**。
 
                     【行为要求】
                     1. 在回复开头主动提及时间流逝，使用自然的人类时间感知表达（例如：“好久不见”“时间过得真快”等）
