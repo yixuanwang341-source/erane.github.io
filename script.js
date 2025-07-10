@@ -1317,9 +1317,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return item.role === 'assistant'
             })
             if (assistantList.length) {
-                let timestamp = JSON.parse(JSON.stringify(assistantList[assistantList.length - 1].timestamp));
+                let timestamp = assistantList[assistantList.length - 1].timestamp;
                 if (timestamp) {
-                    // systemPrompt += `\n\n[你上一次回复我的时间是: ${formatTimestamp(new Date(timestamp))}。当前时间是: ${formatTimestamp(Date.now())}。我们上次互动是${getTimeDifference(timestamp,Date.now())}]`;
                     systemPrompt += `
                     【时间上下文】
                      请注意：我们上一次互动发生在 ${formatTimestamp2(new Date(timestamp))}，当前系统时间为 ${formatTimestamp2(Date.now())}。距离上次对话已过去 **${getTimeDifference(timestamp,Date.now())}**。
