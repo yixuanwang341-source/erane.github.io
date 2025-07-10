@@ -1140,6 +1140,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
+    function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+
+        // 获取日期组件
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始需+1
+        const day = String(date.getDate()).padStart(2, '0');
+
+        // 获取时间组件
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
 
     async function triggerAiResponse(autoSendChatId = undefined) {
         if (!state.activeChatId && !autoSendChatId) return;
@@ -1301,9 +1316,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return item.role === 'assistant'
             })
             if (assistantList.length) {
-                let timestamp = assistantList[assistantList.length - 1].timestamp;
+                let timestamp = JSON.parse(JSON.stringify(assistantList[assistantList.length - 1].timestamp));
                 if (timestamp) {
-                    systemPrompt += `\n\n[你上一次回复我的时间是: ${new Date(timestamp)}。当前时间是: ${new Date()}。我们上次互动是${getTimeDifference(timestamp,Date.now())}]`;
+                    // systemPrompt += `\n\n[你上一次回复我的时间是: ${formatTimestamp(new Date(timestamp))}。当前时间是: ${formatTimestamp(Date.now())}。我们上次互动是${getTimeDifference(timestamp,Date.now())}]`;
+                    systemPrompt += `
+                    【时间上下文】
+                     请注意：我们上一次互动发生在 ${formatTimestamp(new Date(timestamp))}，当前系统时间为 ${formatTimestamp(Date.now())}。距离上次对话已过去 **${getTimeDifference(timestamp,Date.now())}**。
+
+                    【行为要求】
+                    1. 在回复开头主动提及时间流逝，使用自然的人类时间感知表达（例如：“好久不见”“时间过得真快”等）
+                    2. 若对话涉及时效性内容（如任务/计划/新闻），主动询问是否需要更新信息
+                    3. 避免直接重复15天前的对话内容，优先确认需求是否变化
+                    4. 语气需体现对长期未联系的关怀感（如询问近况），但保持专业简洁
+                    `;
                 }
             }
         }
