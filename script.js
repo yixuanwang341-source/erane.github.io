@@ -1078,7 +1078,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             contentHtml = String(msg.content || '').replace(/\n/g, '<br>');
         }
-        console.log(formatTimestamp(msg.timestamp))
         bubble.innerHTML = `<div class="avatar-group"><img src="${avatarSrc}" class="avatar"><span class="timestamp">${formatTimestamp(msg.timestamp)}</span></div><div class="content">${contentHtml}</div>`;
         addLongPressListener(bubble, () => enterSelectionMode(msg.timestamp));
         bubble.addEventListener('click', () => {
@@ -1157,6 +1156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 
+    let messageTextContext = document.querySelector('.chat-error-message-content');
     async function triggerAiResponse(autoSendChatId = undefined) {
         if (!state.activeChatId && !autoSendChatId) return;
 
@@ -1405,12 +1405,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
             const response = await fetch(isGemini ? geminiConfig.url : baseConfig.url, isGemini ? geminiConfig.data : baseConfig.data);
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(`API Error: ${response.status} - ${errorData.error.message}`);
             }
             const data = await response.json();
-
+            messageTextContext.value = JSON.stringify(data);
+            console.log(data)
             const aiResponseContent = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
             let messagesArray = parseAiResponse(aiResponseContent);
             // 提取撤回信息的内容
@@ -4184,5 +4186,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelector('#api-type-select').addEventListener('change', async (e)=>{
         // https://generativelanguage.googleapis.com/v1beta/models
         document.getElementById('proxy-url').value = 'https://generativelanguage.googleapis.com/v1beta/models';
+    })
+    document.querySelector('.chat-error-message-btn').addEventListener('click', async (e)=>{
+        document.querySelector('.chat-error-message-box').classList.remove('show')
+    })
+    document.querySelector('#get-messages-btn').addEventListener('click', (e)=>{
+        document.querySelector('.chat-error-message-box').classList.add('show')
     })
 });
