@@ -3921,6 +3921,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await db.globalSettings.put(state.globalSettings);
                     updateMoment();
                 }
+            }if(e.target.classList.contains('moment-image-item')){
+                let desc = e.target.getAttribute('data-image-desc');
+                if(desc){
+                    showCustomAlert('图片描述', desc);
+                }
             }
         });
     }
@@ -3979,8 +3984,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="moment-content">
                     ${dom.content}
                 </div>
-                <div class="moment-images">
-                    <img src="${dom.image ? dom.image : ''}">
+                <div class="moment-images" >
+                    <img class="moment-image-item" data-image-desc="${dom.imageDesc}" src="${dom.image ? dom.image : ''}">
                 </div>
                 <div class="moment-actions">
                     <div class="moment-action-btn moment-like-btn ${alreadyLiked(dom.appreciate) ? 'moment-liked' : ''}" >

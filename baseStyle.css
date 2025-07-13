@@ -1856,6 +1856,7 @@ body {
 .moment-images img{
     display: block;
     max-width: 100%;
+    /*pointer-events: none;*/
 }
 .bottom-nav{
     position: absolute;
