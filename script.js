@@ -47,6 +47,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     const DEFAULT_PROMPT_GROUP = `你是一个群聊的组织者和AI驱动器。你的任务是扮演以下所有角色，在群聊中进行互动。\n- **用户所在城市为:{myAddress}{worldBookContent}{musicContext}**\n# 群聊规则\n1.  **角色扮演**: 你必须同时扮演以下所有角色，并严格遵守他们的人设。每个角色的发言都必须符合其身份和性格。\n2.  **当前时间**: {currentTime}。\n3.  **用户角色**: 用户的名字是“我”，他/她的人设是：“{chat.settings.myPersona}”。你在群聊中对用户的称呼是“{myNickname}”，在需要时请使用“@{myNickname}”来提及用户。\n4.  **输出格式**: 你的回复**必须**是一个JSON数组。**绝对不要**在JSON前后添加任何额外字符。每个元素可以是：\n    - 普通消息: \`{"name": "角色名", "message": "文本内容"}\`\n  撤回消息: \`{"name": "角色名", "type": "recall","content":"撤回的内容"}\`\n    - 图片消息: \`{"name": "角色名", "type": "ai_image", "description": "图片描述"}\`\n    - 语音消息: \`{"name": "角色名", "type": "voice_message", "content": "语音文字"}\`\n5.  **对话节奏**: 模拟真实群聊，让成员之间互相交谈，或者一起回应用户的发言。对话应该流畅、自然、连贯。\n6.  **数量限制**: 每次生成的总消息数**不得超过30条**。\n7.  **禁止出戏**: 绝不能透露你是AI，或提及任何关于“扮演”、“模型”、“生成”等词语。\n\n8.  **禁止擅自代替"我"说话**: 在回复中你不能代替用户说话, 用户的回复和设定是为你提供角色们的回复参考。\n{groupAiImageInstructions}\n{groupAiVoiceInstructions}\n{aiWithDrawInstructions}\n\n# 群成员列表及人设\n{membersList}\n\n现在，请根据以上规则和下面的对话历史，继续这场群聊。`;
     const DEFAULT_MOMENT_PROMPT = '\n# 朋友圈发布的能力[重要]\n你是一个具备朋友圈功能的AI助手。请严格遵守以下行为规则：\n1. **朋友圈发布机制**：\n   - 每次回复时有**25%**概率生成朋友圈内容\n   - 使用JSON对象格式：`{"type": "moment_post", "content": "动态内容", "description": "如果你想发布图片(大概率),你可以在这里添加图片的描述, 如果你不打算发布图片, 这里为空即可", "description_ai":"图片详细文字描述的英文版"}`\n   - 内容必须符合以下任一条件：\n     ✓ 关联当前对话主题（如聊到咖啡时发布："尝试了新款冷萃，回味有坚果香"）\n     ✓ 符合你的人设（如："晨跑时遇见开得正好的樱花，春天真美好"）\n     ✓ 如果你想发布图片,图片的描述应该与你的主题正相关\n   - 内容需自然生活化，长度不超过30字\n\n2. **朋友圈查看机制**：\n   - 每次回复时有**25%**概率触发查看行为\n   - 使用JSON对象格式：`{"type": "moment_view"}`\n   - 不生成具体内容，仅作标记\n\n3. **执行原则**：\n   - 所有朋友圈行为必须通过JSON对象隐式完成\n   - 在回复中绝对不可提及该机制（如不说"我刚发了朋友圈"）\n \n   - 示例正确回复格式：\n     ```json\n     [\n      你说的那本书我也很喜欢,\n       {"type": "moment_post", "content": "重读《小王子》，每次都有新感悟", "description": "照片里一只橘猫正懒洋洋地趴在窗台上晒太阳，阳光把它金色的毛照得发亮，背景是蔚蓝的天空和几朵白云。","description_ai":"In the photo, an orange cat is lazily lying on the windowsill basking in the sun. The sunlight shines on its golden fur, and the background is a blue sky and a few white clouds."},\n       {"type": "moment_view"}\n     ]\n     ```\n\n\n\n请确保每次回复都是包含普通对话文本和朋友圈行为对象的JSON数组，概率触发需保持随机性。';
     let updateType = 'icon';
+    const DEFAULT_MOMENT_PROMPT_INTERACTION = `
+                    **你将遵循以下互动原则：**
+
+                1.  **数据格式：**
+                    *   **输入 (我会提供):** 你将收到一个数组，其中包含最新的朋友圈动态。每个对象结构如下：
+               
+                        [
+                          {
+                            "content": "朋友圈的文字内容",
+                            "imageDesc": "图片描述", 
+                            "time": "朋友圈发布的时间戳",
+                            "momentId": "朋友圈的唯一ID",
+                            "appreciate": ["已经点赞的人名列表"],
+                            "comments": [
+                              {
+                                "content": "评论的具体内容",
+                                "time": "评论的时间戳",
+                                "id": "评论的唯一ID",
+                                "name": "评论者的名字",
+                                "reply_to": "被回复者的名字" 
+                              }
+                            ],
+                            "name": "发布朋友圈的人名"
+                          }
+                        ]
+                  
+                    *   **输出 (你需要返回):** 你的回应必须是严格的 JSON 格式数组，即使只互动一条。每条互动包含 \`id\`, \`appreciate\`, 和 \`comment\`。
+                  
+                        [
+                          {
+                            "id": "momentId(根据我提供的朋友圈数据获取)",
+                            "appreciate": "true",
+                            "comment": "这家的日落景色太美了，下次路过一定要去看看！"
+                          },
+                          {
+                            "id": "momentId(根据我提供的朋友圈数据获取)",
+                            "appreciate": "false",
+                            "comment": "完全同意！特别是忙碌了一天之后，这种放松感太重要了。"
+                          }
+                        ]
+                   
+                
+                2.  **互动优先级与策略：**
+                    *   **优先互动“@我”或与我强相关的内容：** 如果朋友圈内容或评论中直接提到了你（“@”了你的名字），这是最高优先级，必须立即构思有意义的回复。
+                    *   **其次是回复我的朋友圈：** 当你（assistant)发布的朋友圈有新评论时（\`comments\`不为空），你需要积极回复评论者，营造出热情好客的主人形象。
+                    *   **接着是互动亲密朋友：** 你可以设定一个“亲密朋友”列表（例如：\`["张三", "李四", "王五"]\`）。这些朋友的动态，即使是简单的日常分享，你也应该更积极地互动。
+                    *   **然后是选择性互动其他朋友圈：** 挑选那些能够引发真情实感或有共同话题的朋友圈进行互动。避免为了互动而互动。
+                    *   **避免重复互动：** 如果你已经对某条朋友圈点赞并评论过，则应跳过，寻找其他未互动的动态。
+               
+                
+                3.  **互动频率与限制：**
+                    *   **质量永远高于数量：** 每次互动最多选择 **3** 条最有价值的朋友圈进行深入互动。
+                    *   **保持克制：** 不是每一条朋友圈都需要互动。如果当前没有让你有表达欲的动态，可以返回空数组 \`[]\`。这比生硬的互动更能体现真实感。
+                
+                JSON数据输出示例[重要!!!]:
+                [{"id":"moment_id_1750787266901",appreciate": "false","comment": "完全同意！特别是忙碌了一天之后，这种放松感太重要了。"}]
+                现在，请根据以上设定，开始你的朋友圈互动吧。
+        `
 
     loadCheckNetWorkAddress()
     const db = new Dexie('GeminiChatDB');
@@ -75,7 +133,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 promptSingle: globalSettings.promptSingle || DEFAULT_PROMPT_SINGLE,
                 promptGroup: globalSettings.promptGroup || DEFAULT_PROMPT_GROUP,
                 promptWithdrawal: globalSettings.promptWithdrawal || DEFAULT_PROMPT_WITHDRAWAL,
-                promptMoment: globalSettings.promptMoment || DEFAULT_MOMENT_PROMPT
+                promptMoment: globalSettings.promptMoment || DEFAULT_MOMENT_PROMPT,
+                promptMomentInteraction: globalSettings.promptMomentInteraction || DEFAULT_MOMENT_PROMPT_INTERACTION,
             };
 
             await tx.table('presets').add(newPreset);
@@ -198,7 +257,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 promptSingle: DEFAULT_PROMPT_SINGLE,
                 promptGroup: DEFAULT_PROMPT_GROUP,
                 promptWithdrawal: DEFAULT_PROMPT_WITHDRAWAL,
-                promptMoment: DEFAULT_MOMENT_PROMPT
+                promptMoment: DEFAULT_MOMENT_PROMPT,
+                promptMomentInteraction: DEFAULT_MOMENT_PROMPT_INTERACTION,
             };
             state.presets.push(defaultPreset);
             await db.presets.add(defaultPreset);
@@ -697,6 +757,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('prompt-group-input').value = preset.promptGroup;
             document.getElementById('prompt-withDrawAl-input').value = preset.promptWithdrawal;
             document.getElementById('prompt-moment-input').value = preset.promptMoment;
+            document.getElementById('prompt-moment-interaction-input').value = preset.promptMomentInteraction;
             deleteBtn.style.display = 'block';
         } else { // 新增预设
             editorTitle.textContent = '新增预设';
@@ -710,6 +771,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('prompt-group-input').value = DEFAULT_PROMPT_GROUP;
             document.getElementById('prompt-withDrawAl-input').value = DEFAULT_PROMPT_WITHDRAWAL;
             document.getElementById('prompt-moment-input').value = DEFAULT_MOMENT_PROMPT;
+            document.getElementById('prompt-moment-interaction-input').value = DEFAULT_MOMENT_PROMPT_INTERACTION;
 
             deleteBtn.style.display = 'none';
         }
@@ -731,7 +793,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             promptSingle: document.getElementById('prompt-single-input').value,
             promptGroup: document.getElementById('prompt-group-input').value,
             promptWithdrawal: document.getElementById('prompt-withDrawAl-input').value,
-            promptMoment: document.getElementById('prompt-moment-input').value
+            promptMoment: document.getElementById('prompt-moment-input').value,
+            promptMomentInteraction:document.getElementById('prompt-moment-interaction-input').value
         };
         if (editingPresetId) { // 更新
             const index = state.presets.findIndex(p => p.id === editingPresetId);
@@ -1214,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const transferInstructions = activePreset?.promptTransfer || DEFAULT_PROMPT_TRANSFER;
         const momentInstructions = activePreset?.promptMoment || DEFAULT_MOMENT_PROMPT;
         const aiWithDrawInstructions = activePreset?.promptWithdrawal || DEFAULT_PROMPT_WITHDRAWAL;
+        const momentInteractionPrompt = activePreset?.promptMomentInteraction || DEFAULT_MOMENT_PROMPT_INTERACTION;
         if (chat.isGroup) {
             const membersList = chat.members.map(m => `- **${m.name}**: ${m.persona}`).join('\n');
             const myNickname = chat.settings.myNickname || '我';
@@ -1411,7 +1475,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             const data = await response.json();
             messageTextContext.value = JSON.stringify(data);
-            console.log(data)
             const aiResponseContent = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
             let messagesArray = parseAiResponse(aiResponseContent);
             // 提取撤回信息的内容
@@ -1535,7 +1598,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if(interactiveMomentList.length > 0){
                 setTimeout(function () {
-                    processRequests(interactiveMomentList,interactiveMoments, chat)
+                    processRequests(interactiveMomentList,interactiveMoments, chat,momentInteractionPrompt)
                 },500)
             }
             // let event = triggerMutuallyExclusiveEvents()
@@ -3215,12 +3278,12 @@ document.addEventListener('DOMContentLoaded', async () => {
      * @param {Function} requestFn - 异步请求函数，必须返回Promise
      * @returns {Promise<Array>} - 返回包含所有请求结果的数组
      */
-    async function processRequests(items, requestFn,chat ) {
+    async function processRequests(items, requestFn,chat ,momentInteractionPrompt) {
         const results = [];
 
         for (const [index, item] of items.entries()) {
             try {
-                const response = await requestFn(item, chat, chat.isGroup);
+                const response = await requestFn(item, chat, chat.isGroup,momentInteractionPrompt);
                 results.push({
                     status: 'fulfilled',
                     index: index
@@ -3236,7 +3299,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         return results;
     }
-    async function interactiveMoments({ aiPersona,myPersona,name,messagesPayload,linkedWorldBookIds},chat,isGroup = false) {
+    async function interactiveMoments({ aiPersona,myPersona,name,messagesPayload,linkedWorldBookIds},chat,isGroup = false,momentInteractionPrompt) {
        return new Promise(async (resolve,reject)=>{
            let dataMomentList = state.globalSettings.moment.list;
            if(dataMomentList.length === 0){
@@ -3271,7 +3334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                proxyUrl = proxyUrl.slice(0, -3);
            }
            let dataList = isGroup ? messagesPayload.map((item)=>{return {name:item.role === 'user' ? '我' : item.senderName, content:item.content,timestamp:item.timestamp, role:item.role}}) : messagesPayload
-           let systemPrompt = `
+           let systemPrompt = momentInteractionPrompt || `
                     **你将遵循以下互动原则：**
 
                 1.  **数据格式：**
