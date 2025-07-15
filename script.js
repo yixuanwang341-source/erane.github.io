@@ -3007,6 +3007,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('prompt-group-input').value = DEFAULT_PROMPT_GROUP;
                 document.getElementById('prompt-withDrawAl-input').value = DEFAULT_PROMPT_WITHDRAWAL;
                 document.getElementById('prompt-moment-input').value = DEFAULT_MOMENT_PROMPT;
+                document.getElementById('prompt-moment-interaction-input').value = DEFAULT_MOMENT_PROMPT_INTERACTION;
             }
         });
         //远程css
