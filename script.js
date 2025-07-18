@@ -624,11 +624,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const bgHtml = selectedRadio.dataset.theme;
         // 应用并保存主题
         switchStylesheet(url);
+        state.globalSettings.bgHtml = ''
         state.globalSettings.remoteThemeUrl = url;
         if (bgHtml && bgHtml !== 'undefined') {
             state.globalSettings.bgHtml = bgHtml;
         } else {
-            state.globalSettings.bgHtml = '#phone-screen';
+            state.globalSettings.bgHtml = '#home-screen';
         }
         await db.globalSettings.put(state.globalSettings);
         showCustomAlert("主题已更新", "新主题已应用并保存。");
