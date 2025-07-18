@@ -46,6 +46,8 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    background-size: cover;
+    background-repeat: no-repeat;
     border: 2px solid #333;
 }
 .base-bg-color{
