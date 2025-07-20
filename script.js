@@ -684,25 +684,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 console.error("解析失败：", error);
             }
-        }else {
-            try {
-                const parsed = JSON.parse(content);
-                if (Array.isArray(parsed)) return parsed;
-            } catch (e) {
-            }
-            try {
-                const match = content.match(/\[(.*?)\]/s);
-                if (match && match[0]) {
-                    const parsed = JSON.parse(match[0]);
-                    if (Array.isArray(parsed)) return parsed;
-                }
-            } catch (e) {
-            }
-            const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('```'));
-            if (lines.length > 0) return lines;
-            return [content];
         }
-
+        try {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) return parsed;
+        } catch (e) {
+        }
+        try {
+            const match = content.match(/\[(.*?)\]/s);
+            if (match && match[0]) {
+                const parsed = JSON.parse(match[0]);
+                if (Array.isArray(parsed)) return parsed;
+            }
+        } catch (e) {
+        }
+        const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('```'));
+        if (lines.length > 0) return lines;
+        return [content];
     }
 
     function renderApiSettings() {
