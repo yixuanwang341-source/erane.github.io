@@ -679,9 +679,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 return content
                     .split('\n')
-                    .map(line => line.trim())
                     .filter(line => line)
-                    .map(line => JSON.parse(line));
+                    .flatMap(jsonStr => JSON.parse(jsonStr));
             } catch (error) {
                 console.error("解析失败：", error);
             }
@@ -1490,7 +1489,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await response.json();
             messageTextContext.value = JSON.stringify(data);
             const aiResponseContent = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
-            let messagesArray =  parseAiResponse(aiResponseContent);
+            let messagesArray =  parseAiResponse(aiResponseContent,isGemini);
             // 提取撤回信息的内容
             messagesArray = removeRecalledContent(messagesArray, chat.isGroup);
             let notificationShown = false;
