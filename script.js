@@ -674,23 +674,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('main-date').textContent = dateString;
     }
 
-    function parseAiResponse(content) {
-        try {
-            const parsed = JSON.parse(content);
-            if (Array.isArray(parsed)) return parsed;
-        } catch (e) {
-        }
-        try {
-            const match = content.match(/\[(.*?)\]/s);
-            if (match && match[0]) {
-                const parsed = JSON.parse(match[0]);
-                if (Array.isArray(parsed)) return parsed;
+    function parseAiResponse(content,isGemini) {
+        if(isGemini){
+            try {
+                return content
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line)
+                    .map(line => JSON.parse(line));
+            } catch (error) {
+                console.error("解析失败：", error);
             }
-        } catch (e) {
+        }else {
+            try {
+                const parsed = JSON.parse(content);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {
+            }
+            try {
+                const match = content.match(/\[(.*?)\]/s);
+                if (match && match[0]) {
+                    const parsed = JSON.parse(match[0]);
+                    if (Array.isArray(parsed)) return parsed;
+                }
+            } catch (e) {
+            }
+            const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('```'));
+            if (lines.length > 0) return lines;
+            return [content];
         }
-        const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('```'));
-        if (lines.length > 0) return lines;
-        return [content];
+
     }
 
     function renderApiSettings() {
@@ -1477,7 +1490,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await response.json();
             messageTextContext.value = JSON.stringify(data);
             const aiResponseContent = isGemini? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
-            let messagesArray = parseAiResponse(aiResponseContent);
+            let messagesArray =  parseAiResponse(aiResponseContent,isGemini);
             // 提取撤回信息的内容
             messagesArray = removeRecalledContent(messagesArray, chat.isGroup);
             let notificationShown = false;
@@ -1676,7 +1689,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function enterSelectionMode(initialMsgTimestamp) {
         if (isMessageEditMode) {
-            exitMessageEditMode(false);
+            return;
+            // exitMessageEditMode(false);
         }
         if (isSelectionMode) return;
         isSelectionMode = true;
