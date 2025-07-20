@@ -1129,15 +1129,19 @@
             overflow: hidden;
         }
 
-        .message-input-area input {
+        .message-input-area input,
+        .message-input-area textarea
+        {
             flex-grow: 1;
             border: none;
-            padding: 12px;
+            padding: 6px;
             border-radius: 18px;
             background-color: #f0f0f0;
         }
 
-        .message-input-area input:focus {
+        .message-input-area input:focus,
+        .message-input-area textarea:focus
+        {
             outline: none;
         }
 
@@ -1728,7 +1732,7 @@
                 </button>
             </div>
             <div class="message-input-area" id="message-input-default">
-                <input type="text" id="message-input" placeholder="输入消息...">
+                <textarea type="text" id="message-input" placeholder="输入消息..."></textarea>
                 <button id="send-message-btn" class="icon-btn send-btn">➤</button>
                 <button id="get-reply-btn" class="icon-btn">
                     <svg viewBox="0 0 24 24">
