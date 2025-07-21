@@ -1137,8 +1137,15 @@
             padding: 6px;
             border-radius: 18px;
             background-color: #f0f0f0;
+            font-size: 16px;
+            resize: both;
+            height: auto;
+            transition: all 0.2s ease-out;
         }
 
+        .message-input-area textarea{
+            max-height: 460px;
+        }
         .message-input-area input:focus,
         .message-input-area textarea:focus
         {
@@ -1732,7 +1739,7 @@
                 </button>
             </div>
             <div class="message-input-area" id="message-input-default">
-                <textarea type="text" id="message-input" placeholder="输入消息..."></textarea>
+                <textarea  id="message-input" rows="2" placeholder="输入消息..."></textarea>
                 <button id="send-message-btn" class="icon-btn send-btn">➤</button>
                 <button id="get-reply-btn" class="icon-btn">
                     <svg viewBox="0 0 24 24">
@@ -2439,7 +2446,24 @@
             setupGroupChatSystem();
             setupCustomizeApp();
             setupTutorialApp();
+            textAreaAutoHeight();
         };
+
+        function textAreaAutoHeight() {
+            const textareas = document.getElementById('message-input');
+            console.log(textareas)
+            // 监听输入事件
+            textareas.addEventListener('input', function() {
+                autoResizeTextarea(this);
+            });
+        }
+        // 自适应文本域高度的函数
+        function autoResizeTextarea(textarea) {
+            // 重置高度以获取准确的scrollHeight
+            textarea.style.height = 'auto';
+            // 设置新高度，增加一些额外空间
+            textarea.style.height = (textarea.scrollHeight)  + 'px';
+        }
 
         function updateClock() {
             const now = new Date();
