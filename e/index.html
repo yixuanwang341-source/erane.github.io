@@ -2457,11 +2457,16 @@
             });
         }
         // 自适应文本域高度的函数
-        function autoResizeTextarea(textarea) {
-            // 重置高度以获取准确的scrollHeight
-            textarea.style.height = '39px';
-            // 设置新高度，增加一些额外空间
-            textarea.style.height = (textarea.scrollHeight)  + 'px';
+        function autoResizeTextarea(textarea,resize = false) {
+            if(resize){
+                textarea.style.height = '';
+            }else {
+                // 重置高度以获取准确的scrollHeight
+                textarea.style.height = '39px';
+                // 设置新高度，增加一些额外空间
+                textarea.style.height = (textarea.scrollHeight)  + 'px';
+            }
+
         }
 
         function updateClock() {
@@ -3385,7 +3390,8 @@
             saveData();
             renderChatList();
             messageInput.value = '';
-            autoResizeTextarea(messageInput)
+            console.log(messageInput)
+            autoResizeTextarea(messageInput,true)
         }
 
         function sendSticker(sticker) {
