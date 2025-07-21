@@ -2450,10 +2450,8 @@
         };
 
         function textAreaAutoHeight() {
-            const textareas = document.getElementById('message-input');
-            console.log(textareas)
             // 监听输入事件
-            textareas.addEventListener('input', function() {
+            messageInput.addEventListener('input', function() {
                 autoResizeTextarea(this);
             });
         }
@@ -3386,6 +3384,7 @@
             saveData();
             renderChatList();
             messageInput.value = '';
+            autoResizeTextarea(messageInput)
         }
 
         function sendSticker(sticker) {
