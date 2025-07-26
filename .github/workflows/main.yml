@@ -1,0 +1,66 @@
+  - name: Setup Pages
+    id: pages
+    uses: actions/configure-pages@v4
+
+  # --------------------------------------------------------------------
+  # 步骤 1: 生成您的口令
+  # 您需要在此处替换为您自己的口令生成逻辑
+  # 作为一个安全的示例, 我们生成一个随机的字符串
+  # --------------------------------------------------------------------
+  - name: Generate Access Token
+    id: generate_token
+    run: |
+      #  示例: 生成一个12位的随机字母数字组合
+      TOKEN=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 12)
+      echo "Generated Token: $TOKEN"
+      echo "token_value=$TOKEN" >> $GITHUB_OUTPUT
+
+  # --------------------------------------------------------------------
+  # 步骤 2: 将生成的口令写入 JSON 文件
+  # 这个 JSON 文件将随您的网站一同部署
+  # --------------------------------------------------------------------
+  - name: Create password file
+    run: |
+      # 创建一个目录来存放您的静态网页文件 (如果尚不存在)
+      # 假设您的网站根目录是 'public'
+      mkdir -p public
+      # 将口令写入 JSON 文件
+      echo "{\"token\": \"${{ steps.generate_token.outputs.token_value }}\"}" > public/auth.json
+      # 重要提示: 建议将您的 index.html 也放在 'public' 目录下
+      # 如果您的 index.html 在根目录, 请取消下面这行注释
+      # cp index.html public/
+
+  # --------------------------------------------------------------------
+  # 步骤 3: (可选) 调用第三方服务通知个人微信
+  # 这是为您预留的代码位置
+  # 您需要先在仓库的 Settings > Secrets and variables > Actions 中添加一个名为 WECHAT_PUSH_KEY 的 Secret
+  # --------------------------------------------------------------------
+  - name: Notify via WeChat
+    if: always() # 保证即使前面的步骤失败, 也尝试发送通知
+    run: |
+      echo "在此处调用第三方服务 API 来发送微信通知."
+      #
+      # --- 取消以下代码的注释并替换为您选择的服务 ---
+      #
+      # 示例: 使用 ServerChan (sct.ftqq.com)
+      # MESSAGE="新的GitHub Pages口令已生成: ${{ steps.generate_token.outputs.token_value }}"
+      # URL_ENCODED_MESSAGE=$(echo "$MESSAGE" | jq -s -R -r @uri)
+      # curl -s "https://sctapi.ftqq.com/${{ secrets.WECHAT_PUSH_KEY }}.send?title=口令更新通知&desp=$URL_ENCODED_MESSAGE"
+      #
+      # 示例: 使用 PushPlus (www.pushplus.plus)
+      # curl -s -X POST "http://www.pushplus.plus/send" \
+      #   -d "token=${{ secrets.WECHAT_PUSH_KEY }}" \
+      #   -d "title=口令更新通知" \
+      #   -d "content=新的GitHub Pages口令已生成: ${{ steps.generate_token.outputs.token_value }}" \
+      #   -d "template=markdown"
+      #
+      echo "通知代码块结束."
+
+  # --------------------------------------------------------------------
+  # 步骤 4: 上传产物用于部署
+  # --------------------------------------------------------------------
+  - name: Upload artifact
+    uses: actions/upload-pages-artifact@v3
+    with:
+      # 指定包含您网站文件 (和 auth.json) 的目录
+      path: ./public
