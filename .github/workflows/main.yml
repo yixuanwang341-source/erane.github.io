@@ -25,7 +25,11 @@ jobs:
           echo "password=$PASSWORD" >> $GITHUB_ENV
           echo "生成的口令: $PASSWORD"
       
-      - name: 更新password.js文件
+      - name: 创建目录结构（如果不存在）
+        run: |
+          mkdir -p index
+      
+      - name: 更新或创建password.js文件
         run: |
           # 创建或更新password.js文件
           echo "const PASSWORD = '$PASSWORD';" > index/password.js
@@ -47,4 +51,5 @@ jobs:
           # curl -X POST -H "Content-Type: application/json" \
           #   -d '{"text": "GitHub Pages口令已更新为: $PASSWORD"}' \
           #   https://api.example.com/wechat-notify
-          echo "此处可添加通知个人微信的代码"    
+          echo "此处可添加通知个人微信的代码"
+    
