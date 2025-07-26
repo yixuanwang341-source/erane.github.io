@@ -25,13 +25,9 @@ jobs:
           echo "password=$PASSWORD" >> $GITHUB_ENV
           echo "生成的口令: $PASSWORD"
       
-      - name: 创建目录结构（如果不存在）
-        run: |
-          mkdir -p index
-      
       - name: 更新或创建password.js文件
         run: |
-          # 创建或更新password.js文件
+          # 直接在仓库根目录创建或更新password.js
           echo "const PASSWORD = '${{ env.password }}';" > password.js
           cat password.js
       
@@ -39,17 +35,15 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index/password.js
+          git add password.js
           git commit -m "自动更新口令 - $(date +'%Y-%m-%d %H:%M:%S')" || echo "没有更改需要提交"
           git push origin phone || echo "推送失败，可能没有更改"
       
       - name: 通知到个人微信
         run: |
           # 预留调用第三方服务通知个人微信的代码位置
-          # 可使用企业微信机器人、Server酱等服务
           # 示例代码（需替换为实际的API调用）：
           # curl -X POST -H "Content-Type: application/json" \
-          #   -d '{"text": "GitHub Pages口令已更新为: $PASSWORD"}' \
+          #   -d '{"text": "GitHub Pages口令已更新为: ${{ env.password }}"}' \
           #   https://api.example.com/wechat-notify
-          echo "此处可添加通知个人微信的代码"
-    
+          echo "此处可添加通知个人微信的代码"    
