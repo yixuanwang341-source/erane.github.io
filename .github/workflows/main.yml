@@ -33,7 +33,7 @@ jobs:
         run: |
           # 创建或更新password.js文件
           echo "const PASSWORD = '${{ env.password }}';" > password.js
-          cat index/password.js
+          cat password.js
       
       - name: 提交更改
         run: |
