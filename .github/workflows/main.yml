@@ -40,10 +40,25 @@ jobs:
           git push origin phone || echo "推送失败，可能没有更改"
       
       - name: 通知到个人微信
+        env:
+          SERVERCHAN_KEY: ${{ secrets.SERVERCHAN_KEY }}
         run: |
-          # 预留调用第三方服务通知个人微信的代码位置
-          # 示例代码（需替换为实际的API调用）：
-          # curl -X POST -H "Content-Type: application/json" \
-          #   -d '{"text": "GitHub Pages口令已更新为: ${{ env.password }}"}' \
-          #   https://api.example.com/wechat-notify
-          echo "此处可添加通知个人微信的代码"    
+          # 使用 Server酱发送微信通知
+          echo "准备发送微信通知..."
+          
+          # URL编码处理口令（处理特殊字符）
+          ENCODED_PASSWORD=$(echo "${{ env.password }}" | python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read().strip()))")
+          
+          # 构建API请求URL
+          API_URL="https://sctapi.ftqq.com/${SERVERCHAN_KEY}.send?title=今日口令&desp=${ENCODED_PASSWORD}"
+          
+          # 发送GET请求并捕获响应
+          RESPONSE=$(curl -s "$API_URL")
+          
+          # 检查响应状态
+          if echo "$RESPONSE" | grep -q '"code":0'; then
+            echo "微信通知发送成功"
+          else
+            echo "微信通知发送失败: $RESPONSE"
+            exit 1
+          fi 
