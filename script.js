@@ -1,6 +1,6 @@
 let isMessageEditMode = false;
 let editingPresetId = null;
-
+const URLBlacklist = ['api.pisces.ink']
 function showScreen(screenId) {
     if (isMessageEditMode && screenId !== 'chat-interface-screen') {
         exitMessageEditMode(false);
@@ -1255,7 +1255,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (proxyUrl.endsWith('/v1')) {
             proxyUrl = proxyUrl.slice(0, -3);
         }
-
+        const banApi = URLBlacklist.some((api)=>{
+            return proxyUrl.indexOf(api) !== -1
+        })
+        if(banApi){
+            alert('此网址已加入黑名单，请勿使用')
+            return
+        }
         const now = new Date();
         const currentTime = now.toLocaleTimeString('zh-CN', {hour: 'numeric', minute: 'numeric', hour12: true});
         let myAddressInfo = '';
@@ -2572,9 +2578,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const key = document.getElementById('api-key').value.trim();
             if (!url || !key) {
                 loading = false;
+                e.target.textContent = '拉取模型列表';
                 return alert('请先填写反代地址和密钥')
             }
-            ;
+            const banApi = URLBlacklist.some((api)=>{
+                return url.indexOf(api) !== -1
+            })
+            if(banApi){
+                alert('此网址已加入黑名单，请勿使用')
+                loading = false;
+                e.target.textContent = '拉取模型列表';
+                return
+            }
 
             // 去除/
             if (url.endsWith('/')) {
@@ -3346,6 +3361,13 @@ document.addEventListener('DOMContentLoaded', async () => {
            if (proxyUrl.endsWith('/v1')) {
                proxyUrl = proxyUrl.slice(0, -3);
            }
+           const banApi = URLBlacklist.some((api)=>{
+               return proxyUrl.indexOf(api) !== -1
+           })
+           if(banApi){
+               alert('此网址已加入黑名单，请勿使用')
+               return
+           }
            let dataList = isGroup ? messagesPayload.map((item)=>{return {name:item.role === 'user' ? '我' : item.senderName, content:item.content,timestamp:item.timestamp, role:item.role}}) : messagesPayload
            let systemPrompt = momentInteractionPrompt || `
                     **你将遵循以下互动原则：**
@@ -3899,8 +3921,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             for (const icon in state.globalSettings.appIcons) {
                 if (state.globalSettings.appIcons[icon]) {
                     const dom = document.querySelector('.' + icon + '-icon .icon-bg')
-                    dom.style.backgroundImage = `url(${state.globalSettings.appIcons[icon]})`
-                    document.querySelector('.' + icon + '-icon').classList.add('custom-icon')
+                    if(dom){
+                        dom.style.backgroundImage = `url(${state.globalSettings.appIcons[icon]})`
+                        document.querySelector('.' + icon + '-icon').classList.add('custom-icon')
+                    }
+
                 }
             }
         }
