@@ -1,0 +1,88 @@
+/* --- 气泡内容本体样式 --- */
+/* .message-bubble .content 是核心气泡框体 */
+.message-bubble .content {
+border-radius: 4 important; /* 圆角大小，可改为 8px 更圆，也可 0 变方 */
+background-color: #f0f0f0; /* 默认灰色背景（调试用） */
+padding: 6.4 10; /* 内边距：上下6.4px，左右10px */
+color: #000;
+position: relative;
+display: inline-block;
+/* max-width: 70%; */ /* <-- 这里：已移除最大宽度限制 */
+word-wrap: break-word; /* 单词换行 */
+word-break: break-all; /* 防止长单词溢出 */
+/* 动画效果 */
+opacity: 0;
+animation: fadeIn 0.3 ease-out forwards;
+/* 禁止用户选中文本 */-webkit-touch-callout: none;
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+/* 垂直对齐头像 */
+vertical-align: middle;
+}
+/* --- 气泡出现动画 --- */
+ fadeIn {
+ {
+opacity: 0;
+transform: (10);
+} {
+opacity: 1;
+transform: (0);
+}
+}
+/* --- 我方气泡（用户） --- */.message-bubble.user .content {
+background: #95ec69;
+color: #333;
+float: right;
+clear: both;
+margin-bottom: 3; /* 间距 */
+margin-top: 1;
+}
+/* --- 对方气泡（AI） --- */
+.message-bubble.ai .content {
+background: #fff;
+color: #333;
+float: left;
+clear: both;
+margin-bottom: 3; /* 间距 */
+margin-top: 1.5;
+}
+/* --- 我方小尾巴（固定位置） --- */
+.message-bubble.user .content::after {
+content: '';position: absolute;
+top: 12; /* 小尾巴固定在靠上位置 */
+right: -5;
+width: 0;
+height: 0;
+border-top: 6 solid transparent;
+border-bottom: 6 solid transparent;
+border-left: 6 solid #95ec69;
+z-index: 1;
+}
+/* --- 对方小尾巴（固定位置） --- */
+.message-bubble.ai .content::before {
+content: '';
+position: absolute;
+top: 12; /* 固定对方小尾巴位置 */
+left: -5;
+width: 0;
+height: 0;
+border-top: 6 solid transparent;
+border-bottom: 6 solid transparent;border-right: 6px solid #fff;
+z-index: 1;
+}
+/* --- 响应式字体适配 --- */
+ (max-width: 768) {
+.message-bubble .content {
+font-size: 20;
+}
+}
+ (max-width: 480) {
+.message-bubble .content {
+font-size: 13;
+/* max-width: 80%; */ /* <-- 这里：已移除响应式中的最大宽度限制 */
+}
+}
+<link rel="stylesheet" href="styles.css">
